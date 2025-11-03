@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Template",
-    "slug": "Template",
+    "name": "teste",
+    "slug": "teste",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "template",
+    "scheme": "teste",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {

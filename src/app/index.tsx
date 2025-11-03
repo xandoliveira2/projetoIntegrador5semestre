@@ -19,10 +19,10 @@ export default function LoginScreen() {
   const handleLogin = () => {
     if (usuario === 'admin' && senha === 'admin') {
       Alert.alert('Bem-vindo', 'Login como ADMIN realizado!');
-      router.push('/admin'); // Navega para tela admin
+      router.push('./screens/user/paraResponder'); // Navega para tela admin
     } else if (usuario === 'usuario' && senha === '1234') {
       Alert.alert('Bem-vindo', 'Login como USUÁRIO padrão realizado!');
-      router.push('/user'); // Navega para tela user
+      router.push('./screens/user/paraResponder'); // Navega para tela user
     } else {
       Alert.alert('Erro', 'Usuário ou senha incorretos.');
     }
