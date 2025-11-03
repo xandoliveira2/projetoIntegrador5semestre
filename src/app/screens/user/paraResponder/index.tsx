@@ -1,3 +1,4 @@
+// Para Responder
 import { View, Text, StyleSheet, Alert, Dimensions } from "react-native"
 import { Button } from "@/components/button"
 import { useRouter } from 'expo-router';
@@ -8,6 +9,7 @@ export default function Index() {
     return (
         <View>
             <View style={styles.container}>
+              
 
                 <Button title="Para Responder" active={true}></Button>
                 <Button title="Respondido" onPress={() => router.push('./respondido')}></Button>

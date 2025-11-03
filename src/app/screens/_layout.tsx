@@ -21,11 +21,20 @@ function CustomNavbar() {
 
 const styles = StyleSheet.create({
   navbar: {
-    backgroundColor: "#007bff",
+    backgroundColor: "white",
     height: 60,
     alignItems: "center",
     justifyContent: "center",
     marginBottom:15,
+    
+    // iOS
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4.65,
+
+    // Android
+    elevation: 8,
   },
   title: {
     color: "#fff",
