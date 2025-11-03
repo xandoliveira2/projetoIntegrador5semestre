@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  TouchableOpacity, 
-  Text, 
-  StyleSheet, 
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   TouchableOpacityProps, // Importa os tipos nativos do TouchableOpacity
 } from 'react-native';
 
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     // Cor padrão: Azul
     backgroundColor: '#007AFF', 
     
-    paddingVertical: 10,
+    paddingVertical: 7,
     paddingHorizontal: 20,
     
     // Border Radius Leve

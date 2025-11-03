@@ -1,37 +1,59 @@
 // Formulario
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-const Formulario = ({ texto, children }) => {
+interface Props {
+  texto: string;
+  children?: React.ReactNode;
+}
+
+const Formulario = ({ texto, children }: Props) => {
   return (
     <View style={styles.container}>
+
+
+      <Text 
+      style={styles.texto}
+      numberOfLines={1}
+      ellipsizeMode='tail'
       
-      
-      <Text style={styles.texto}>{texto}</Text>
+      >{texto}</Text>
       {children}
-      
-      
+
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    heigth:50,
     flexDirection: 'row',
     marginVertical: 8,
-    padding:10,
-    paddingTop:15 ,
-    paddingBottom:15,
-    backgroundColor: '#f2f2f2',
+    padding: 10,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: '#EDEDED',
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'space-between',
+    maxWidth:'100%',
+
+    // iOS
+    shadowColor: "#444444ff",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+
+    // Android
+    elevation: 8,
   },
   textContainer: {
     flex: 1,
   },
   texto: {
     fontSize: 16,
+    fontWeight:'bold',
+    
   },
 });
 
