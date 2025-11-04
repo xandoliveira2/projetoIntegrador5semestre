@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
 
     minHeight:55,
+    maxHeight:55,
 
     backgroundColor: '#EDEDED',
     borderRadius: 8,

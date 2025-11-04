@@ -15,6 +15,12 @@ export default function Ativo() {
       id: 1,
       texto: "Pesquisa de satisfação 2023",
       data: "12/06/2023"
+    },
+    
+    {
+      id: 1,
+      texto: "Pesquisa de satisfação 2023",
+      data: "12/06/2023"
     }
   ];
 
