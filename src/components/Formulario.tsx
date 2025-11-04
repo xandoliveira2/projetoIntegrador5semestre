@@ -29,14 +29,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginVertical: 8,
-    padding: 10,
-    paddingTop: 12,
-    paddingBottom: 12,
+
+    minHeight:55,
+
     backgroundColor: '#EDEDED',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'space-between',
     maxWidth:'100%',
+    overflow:'hidden',
 
     // iOS
     shadowColor: "#444444ff",
@@ -53,6 +54,7 @@ const styles = StyleSheet.create({
   texto: {
     fontSize: 16,
     fontWeight:'bold',
+    marginLeft:10,
     
   },
 });

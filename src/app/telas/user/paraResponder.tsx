@@ -52,7 +52,7 @@ export default function ParaResponder() {
 
                                 <FormButton
                                     text="Responder"
-                                    style={{ alignSelf: "flex-end" }}
+                                    style={{  }}
                                     onPress={() => {
                                         // Adicione aqui a ação desejada ao pressionar o botão
                                         console.log(`Responder formulário ${f.id}`);

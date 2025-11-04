@@ -1,64 +1,105 @@
 import React from 'react';
 import {
+  Image,
+  ImageSourcePropType,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableOpacityProps, // Importa os tipos nativos do TouchableOpacity
+  TouchableOpacityProps,
+  View,
 } from 'react-native';
 
-// 1. Define a interface (tipagem) das props do seu componente
+// Tipagem das props
 interface FormButtonProps extends TouchableOpacityProps {
-  text: string;           // A prop obrigatória de texto (em vez de 'title')
-  onPress: () => void;    // A função que será chamada ao pressionar
-  // Você pode adicionar props opcionais, como 'style' ou 'disabled', se quiser
+  text?: string;               // Texto opcional
+  icon?: ImageSourcePropType;  // Ícone opcional (require() ou { uri })
+  iconSize?: number;           // Define tamanho igual (largura e altura)
+  iconWidth?: number;          // Define largura do ícone
+  iconHeight?: number;         // Define altura do ícone
+  onPress: () => void;
 }
 
-// 2. Define o componente como uma função React com tipagem
-const FormButton: React.FC<FormButtonProps> = ({ 
-  text, 
-  onPress, 
-  style, // Permite passar estilos externos (merge com o padrão)
-  ...rest // Captura todas as outras props do TouchableOpacity (como 'disabled')
+// Componente funcional
+const FormButton: React.FC<FormButtonProps> = ({
+  text,
+  icon,
+  iconSize,
+  iconWidth,
+  iconHeight,
+  onPress,
+  style,
+  ...rest
 }) => {
+  const isIconOnly = icon && !text;
+
   return (
     <TouchableOpacity
-      style={[styles.container, style]}
+      style={[
+        styles.container,
+        isIconOnly ? styles.iconOnlyContainer : undefined, // deixa redondo se for só ícone
+        style,
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
-      {...rest} // Passa o resto das props (ex: disabled, accessibilityLabel)
+      {...rest}
     >
-      <Text style={styles.text}>
-        {text}
-      </Text>
+      <View style={styles.content}>
+        {icon && (
+          <Image
+            source={icon}
+            style={[
+              styles.icon,
+              iconSize != null ? { width: iconSize, height: iconSize } : undefined,
+              iconWidth != null ? { width: iconWidth } : undefined,
+              iconHeight != null ? { height: iconHeight } : undefined,
+              !text ? { marginRight: 0 } : undefined, // remove espaçamento se não tiver texto
+            ]}
+          />
+        )}
+        {text && <Text style={styles.text}>{text}</Text>}
+      </View>
     </TouchableOpacity>
   );
 };
 
-// 3. Define os estilos padrão conforme solicitado
+// Estilos
 const styles = StyleSheet.create({
   container: {
-    // Cor padrão: Azul
-    backgroundColor: '#007AFF', 
-    
+    backgroundColor: '#007AFF',
     paddingVertical: 7,
     paddingHorizontal: 20,
-    
-    // Border Radius Leve
-    borderRadius: 8, 
-    
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5, // Sombra para Android
+    elevation: 5,
+    marginRight: 10,
+  },
+  iconOnlyContainer: {
+    borderRadius: 50,          // botão redondo
+    width: 50,                 // tamanho padrão
+    height: 50,
+    paddingHorizontal: 0,      // remove padding lateral
+    paddingVertical: 0,
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+    resizeMode: 'contain',
   },
   text: {
-    // Cor do Texto: Branco
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600', // Semibold
+    fontWeight: '600',
   },
 });
 
