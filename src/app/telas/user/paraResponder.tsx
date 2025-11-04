@@ -1,17 +1,13 @@
-// Para Responder
-import { Button } from "@/components/button";
-import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, View } from "react-native";
+import React from 'react';
+import { View, Text, ScrollView } from 'react-native';
 
-import Data from '@/components/date';
-import FormButton from '@/components/formButton';
-import Formulario from '@/components/formulario';
-import ListaVazia from '@/components/listaVaziaMessage';
+import Date from '@/components/Date';
+import FormButton from '@/components/FormButton';
+import Formulario from '@/components/Formulario';
+import EmptyListMessage from '@/components/EmptyListMessage';
 
-
-export default function Index() {
-    const router = useRouter();
-    const formularios: any[] = [
+export default function ParaResponder() {
+  const formularios: any[] = [
 
         {
             id: 1,
@@ -31,24 +27,22 @@ export default function Index() {
     */
     ];
 
-    return (
-        <View>
-            <View style={styles.container}>
+  return (
+  /*
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Para Responder</Text>
+    </View>
+    */
+   <view>
 
-
-                <Button title="Para Responder" active={true}></Button>
-                <Button title="Respondido" onPress={() => router.push('./respondido')}></Button>
-
-            </View>
-
-            <ScrollView style={{ padding: 20 }}>
+    <ScrollView style={{ padding: 20 }}>
                 {formularios.length === 0 ? (
-                    <ListaVazia mensagem="Nenhum formulário para responder" />
+                    <EmptyListMessage mensagem="Nenhum formulário para responder" />
                 ) : (
                     formularios.map((f) => (
                         <View
                         style={{ marginTop: 15 }}>
-                            <Data data={f.data}></Data>
+                            <Date data={f.data}></Date>
 
                             <Formulario
 
@@ -72,21 +66,7 @@ export default function Index() {
                     ))
                 )}
             </ScrollView>
+   </view>
 
-        </View>
-
-    )
+  );
 }
-
-
-const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-        alignItems: "center",
-        justifyContent: "space-around",
-        flexDirection: "row",
-        alignSelf: "center",
-
-    }
-
-});

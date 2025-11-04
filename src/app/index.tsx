@@ -1,78 +1,53 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import {
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function LoginScreen() {
-  const [usuario, setUsuario] = useState('');
-  const [senha, setSenha] = useState('');
+export default function Login() {
   const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    if (usuario === 'admin' && senha === 'admin') {
-      Alert.alert('Bem-vindo', 'Login como ADMIN realizado!');
-      router.push('./screens/user/paraResponder'); // Navega para tela admin
-    } else if (usuario === 'usuario' && senha === '1234') {
-      Alert.alert('Bem-vindo', 'Login como USUÁRIO padrão realizado!');
-      router.push('./screens/user/paraResponder'); // Navega para tela user
+  function handleLogin() {
+    if (username === 'admin' && password === '123') {
+      router.push('./telas/admin');
+    } else if (username === 'user' && password === '123') {
+      router.push('./telas/user');
     } else {
-      Alert.alert('Erro', 'Usuário ou senha incorretos.');
+      Alert.alert('Erro', 'Usuário ou senha incorretos');
     }
-  };
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.card}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/90' }}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Bem-vindo de volta</Text>
-        <Text style={styles.subtitle}>Faça login na sua conta</Text>
-
-        <View style={styles.inputGroup}>
-          <TextInput
-            placeholder="Usuário"
-            placeholderTextColor="#8b8b8b"
-            style={styles.input}
-            value={usuario}
-            onChangeText={setUsuario}
-          />
-          <TextInput
-            placeholder="Senha"
-            placeholderTextColor="#8b8b8b"
-            style={styles.input}
-            secureTextEntry
-            value={senha}
-            onChangeText={setSenha}
-          />
-        </View>
-
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text style={styles.title}>Login</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Usuário"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize='none'
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Senha"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Entrar</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f172a', justifyContent: 'center', padding: 20 },
-  card: { backgroundColor: '#0b1220', borderRadius: 18, padding: 24 },
-  logo: { width: 90, height: 90, alignSelf: 'center', marginBottom: 12 },
-  title: { color: '#fff', fontSize: 22, fontWeight: '700', textAlign: 'center' },
-  subtitle: { color: '#9aa4bf', fontSize: 13, textAlign: 'center', marginBottom: 18 },
-  inputGroup: { marginVertical: 8 },
-  input: { backgroundColor: '#071126', borderColor: '#152238', borderWidth: 1, color: '#fff', borderRadius: 12, padding: 12, marginBottom: 12 },
-  button: { backgroundColor: '#2563eb', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
+  title: { fontSize: 24, marginBottom: 20 },
+  input: {
+    borderWidth: 1, borderColor: '#ccc', borderRadius: 8,
+    width: '80%', padding: 10, marginVertical: 8,
+  },
+  button: { backgroundColor: 'orange', padding: 12, borderRadius: 8, marginTop: 10, width: '80%' },
+  buttonText: { color: '#fff', fontSize: 16, textAlign: 'center' },
 });

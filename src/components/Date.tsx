@@ -6,7 +6,7 @@ interface Props {
   data: string;
 }
 
-const Data: React.FC<Props> = ({ data }) => {
+const Date: React.FC<Props> = ({ data }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.texto}>{data}</Text>
@@ -25,4 +25,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Data;
+export default Date;

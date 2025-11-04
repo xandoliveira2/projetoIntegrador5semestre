@@ -1,4 +1,4 @@
-// components/ListaVazia.js
+// components/EmptyListMessage.tsx
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -6,7 +6,7 @@ interface Props {
   mensagem: string;
 }
 
-const ListaVazia: React.FC<Props> = ({ mensagem }) => {
+const EmptyListMessage: React.FC<Props> = ({ mensagem }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.texto}>{mensagem}</Text>
@@ -28,4 +28,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ListaVazia;
+export default EmptyListMessage;

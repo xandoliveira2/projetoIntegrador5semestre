@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "teste",
-    "slug": "teste",
+    "name": "expo-router-teste",
+    "slug": "expo-router-teste",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "teste",
+    "scheme": "exporouterteste",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
