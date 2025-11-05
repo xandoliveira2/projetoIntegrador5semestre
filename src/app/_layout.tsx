@@ -1,20 +1,31 @@
-import { Stack } from 'expo-router';
-import { View, Text, StyleSheet } from "react-native";
+import { Stack } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
 
+  /*
 export default function RootLayout() {
   return (
+  
     <Stack screenOptions={{headerShown: false,header: () => <Header />}}
 
     >
       <Stack.Screen name="index" />
-      <Stack.Screen name="telas/admin/_layout" />
-      <Stack.Screen name="telas/admin/formulario/_layout" />
-      <Stack.Screen name="telas/admin/usuarios/_layout" />
-      <Stack.Screen name="telas/user/_layout" />
+      <Stack.Screen name="/telas/admin/_layout" />
+      <Stack.Screen name="/telas/admin/formulario/_layout" />
+      <Stack.Screen name="/telas/admin/usuarios/_layout" />
+      <Stack.Screen name="/telas/user/_layout" />
+    </Stack>
+  
+  );
+}
+  */
+
+export default function RootLayout() {
+  return (
+    <Stack screenOptions={{ headerShown: false, header: () => <Header /> }}>
+      <Stack.Screen name="index" />
     </Stack>
   );
 }
-
 
 function Header() {
   return (

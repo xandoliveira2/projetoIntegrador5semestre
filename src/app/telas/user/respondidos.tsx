@@ -16,7 +16,7 @@ export default function Respondidos() {
       ativo: true
     },
     {
-      id: 1,
+      id: 2,
       texto: "Pesquisa de satisfação 2023",
       data: "12/06/2023",
       ativo: false
@@ -24,7 +24,7 @@ export default function Respondidos() {
     },
 
     {
-      id: 1,
+      id: 3,
       texto: "Pesquisa de satisfação 2023",
       data: "12/06/2023",
       ativo: false
