@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 
 import { Alert, ScrollView, Text, View } from 'react-native';
 
-import CustomModal from '@/components/CustomModal'; // Assumindo que você salvou o arquivo como CustomModal.tsx
 import Date from '@/components/Date';
 import EmptyListMessage from '@/components/EmptyListMessage';
 import FormButton from '@/components/FormButton';
 import Formulario from '@/components/Formulario';
+import ModalNovoFormulario from '@/components/ModalNovoFormulario'; // Assumindo que você salvou o arquivo como ModalNovoFormulario.tsx
 import OptionsMenu from '@/components/OptionsMenu'; // ✅ novo import
 
 import { styles } from '@/styles/IconButtonStyle';
@@ -87,7 +87,7 @@ export default function Criar() {
       </ScrollView>
 
 
-      <CustomModal
+      <ModalNovoFormulario
         isVisible={isModalVisible}
         onClose={handleCloseModal} // Usado pelo botão Cancelar e pelo 'onRequestClose'
         onContinue={handleContinue}

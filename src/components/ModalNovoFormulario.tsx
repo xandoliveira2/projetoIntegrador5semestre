@@ -19,7 +19,7 @@ import { Picker } from '@react-native-picker/picker';
 const { width } = Dimensions.get('window');
 
 // Definição das Props para o componente Modal
-interface CustomModalProps {
+interface ModalNovoFormularioProps {
   isVisible: boolean;
   onClose: () => void;
   onContinue: (data: FormData) => void; // Passa os dados do formulário
@@ -33,7 +33,7 @@ interface FormData {
     dataFinal: Date;
 }
 
-const CustomModal: React.FC<CustomModalProps> = ({ isVisible, onClose, onContinue }) => {
+const ModalNovoFormulario: React.FC<ModalNovoFormularioProps> = ({ isVisible, onClose, onContinue }) => {
   if (!isVisible) {
     return null;
   }
@@ -138,8 +138,7 @@ const CustomModal: React.FC<CustomModalProps> = ({ isVisible, onClose, onContinu
                 <Picker.Item label="Sem intervalo" value="Sem intervalo" />
               </Picker>
             </View>
-
-            {/* Campos Data Início e Data Final */}
+            {intervalo == "Com intervalo" ? (
             <View style={styles.dateRow}>
               {/* Data Início */}
               <View style={styles.dateColumn}>
@@ -181,6 +180,7 @@ const CustomModal: React.FC<CustomModalProps> = ({ isVisible, onClose, onContinu
                 )}
               </View>
             </View>
+):(undefined)}
 
             {/* Linha de Botões */}
             <View style={styles.buttonRow}>
@@ -327,4 +327,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default CustomModal;
+export default ModalNovoFormulario;
