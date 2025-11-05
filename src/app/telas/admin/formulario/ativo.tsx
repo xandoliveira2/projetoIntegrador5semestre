@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, ScrollView, View, Text } from 'react-native';
 
 import Date from '@/components/Date';
 import EmptyListMessage from '@/components/EmptyListMessage';
@@ -9,10 +9,14 @@ import OptionsMenu from '@/components/OptionsMenu'; // ✅ novo import
 import { styles } from '@/styles/IconButtonStyle';
 
 export default function Ativo() {
+  const totalUsuarios = 15;
+  const qtdRespondidos = 6;
+  
   const formularios = [
     
     { id: 1, texto: 'Pesquisa de satisfação 2023', data: '12/06/2023' },
-    { id: 2, texto: 'Avaliação de serviço 2024', data: '15/10/2024' },
+    /*
+    { id: 2, texto: 'Avaliação de serviço 2024', data: '15/10/2024' },*/
      
   ];
 
@@ -43,6 +47,7 @@ export default function Ativo() {
                 />
 
               </Formulario>
+             <Text>Respondidos: {qtdRespondidos}/{totalUsuarios}</Text>
             </View>
           ))
         )}
