@@ -10,15 +10,17 @@ import { styles } from '@/styles/IconButtonStyle';
 
 export default function Ativo() {
   const formularios = [
+    
     { id: 1, texto: 'Pesquisa de satisfação 2023', data: '12/06/2023' },
     { id: 2, texto: 'Avaliação de serviço 2024', data: '15/10/2024' },
+     
   ];
 
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={{ padding: 20 }}>
         {formularios.length === 0 ? (
-          <EmptyListMessage mensagem="Nenhum formulário respondido" />
+          <EmptyListMessage mensagem="Nenhum formulário ativo" />
         ) : (
           formularios.map((f) => (
             <View key={f.id} style={{ marginTop: 15 }}>

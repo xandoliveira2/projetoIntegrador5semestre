@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     minHeight:55,
     maxHeight:55,
 
-    backgroundColor: '#EDEDED',
+    backgroundColor: '#dfdfdfff',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'space-between',

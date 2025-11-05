@@ -16,6 +16,7 @@ interface FormButtonProps extends TouchableOpacityProps {
   iconSize?: number;           // Define tamanho igual (largura e altura)
   iconWidth?: number;          // Define largura do ícone
   iconHeight?: number;         // Define altura do ícone
+  textSize?: number;
   onPress: () => void;
 }
 
@@ -28,6 +29,7 @@ const FormButton: React.FC<FormButtonProps> = ({
   iconHeight,
   onPress,
   style,
+  textSize,
   ...rest
 }) => {
   const isIconOnly = icon && !text;
@@ -56,7 +58,7 @@ const FormButton: React.FC<FormButtonProps> = ({
             ]}
           />
         )}
-        {text && <Text style={styles.text}>{text}</Text>}
+        {text && <Text style={[styles.text, textSize != null ? { fontSize: textSize } : undefined]}>{text}</Text>}
       </View>
     </TouchableOpacity>
   );

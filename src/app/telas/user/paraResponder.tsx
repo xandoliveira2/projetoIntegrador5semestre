@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import Date from '@/components/Date';
+import EmptyListMessage from '@/components/EmptyListMessage';
 import FormButton from '@/components/FormButton';
 import Formulario from '@/components/Formulario';
-import EmptyListMessage from '@/components/EmptyListMessage';
 
 export default function ParaResponder() {
   const formularios: any[] = [
@@ -13,18 +13,7 @@ export default function ParaResponder() {
             id: 1,
             texto: "Pesquisa de satisfação 2023",
             data: "12/06/2023"
-        },
-        {
-            id: 2,
-            texto: "Pesquisa de satisfação 2024",
-            data: "07/05/2024"
-
-        },/*
-    {
-      id: 3,
-      texto: "",
-    },
-    */
+        }
     ];
 
   return (
@@ -33,7 +22,7 @@ export default function ParaResponder() {
       <Text>Para Responder</Text>
     </View>
     */
-   <view>
+   <View>
 
     <ScrollView style={{ padding: 20 }}>
                 {formularios.length === 0 ? (
@@ -66,7 +55,7 @@ export default function ParaResponder() {
                     ))
                 )}
             </ScrollView>
-   </view>
+   </View>
 
   );
 }
