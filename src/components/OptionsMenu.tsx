@@ -1,7 +1,13 @@
-import React, { useState, useRef, cloneElement } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
-import Popover from 'react-native-popover-view';
-import { Placement } from 'react-native-popover-view/dist/Types';
+import React, { cloneElement, useState } from "react";
+import {
+  Alert,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Popover, { PopoverPlacement as Placement } from "react-native-popover-view";
 
 interface Option {
   title: string;
@@ -10,54 +16,47 @@ interface Option {
 
 interface OptionsMenuProps {
   options: Option[];
-  icon: React.ReactElement<{ onPress?: () => void }>; // ✅ precisa ser elemento React (ex: <FormButton />)
+  icon: React.ReactElement<{ onPress?: () => void }>;
 }
 
 const OptionsMenu: React.FC<OptionsMenuProps> = ({ options, icon }) => {
   const [visible, setVisible] = useState(false);
-  const buttonRef = useRef<any>(null);
 
-  const handlePress = () => {
-    if (Platform.OS === 'web') {
-      Alert.alert('Aviso', 'Menu popover não é suportado no Web');
+  const handleOpen = () => {
+    if (Platform.OS === "web") {
+      Alert.alert("Aviso", "Menu popover não é suportado no Web");
       return;
     }
     setVisible(true);
   };
 
-  // ✅ clona o componente recebido (FormButton) e injeta o onPress
-  const clonedIcon = cloneElement(icon, {
-    onPress: handlePress,
-  });
+  const handleClose = () => setVisible(false);
 
   return (
-    <View ref={buttonRef}>
-      {clonedIcon}
-
-      <Popover
-        isVisible={visible}
-        onRequestClose={() => setVisible(false)}
-        from={buttonRef}
-        placement={Placement.BOTTOM}
-      >
-        <View style={styles.menuContent}>
-          {options.map((opt, index) => (
-            <React.Fragment key={index}>
-              <TouchableOpacity
-                style={styles.menuOption}
-                onPress={() => {
-                  setVisible(false);
-                  opt.onPress();
-                }}
-              >
-                <Text style={styles.menuText}>{opt.title}</Text>
-              </TouchableOpacity>
-              {index < options.length - 1 && <View style={styles.separator} />}
-            </React.Fragment>
-          ))}
-        </View>
-      </Popover>
-    </View>
+    <Popover
+      isVisible={visible}
+      onRequestClose={handleClose}
+      placement={Placement.BOTTOM}
+      from={() => cloneElement(icon, { onPress: handleOpen })}
+      animationConfig={{ duration: 60 }}
+    >
+      <View style={styles.menuContent}>
+        {options.map((opt, index) => (
+          <React.Fragment key={index}>
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                handleClose();
+                opt.onPress();
+              }}
+            >
+              <Text style={styles.menuText}>{opt.title}</Text>
+            </TouchableOpacity>
+            {index < options.length - 1 && <View style={styles.separator} />}
+          </React.Fragment>
+        ))}
+      </View>
+    </Popover>
   );
 };
 
@@ -74,7 +73,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     marginVertical: 6,
   },
 });

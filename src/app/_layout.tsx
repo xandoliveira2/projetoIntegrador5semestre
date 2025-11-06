@@ -1,3 +1,7 @@
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  console.log('🔥 ERRO GLOBAL:', error);
+});
+
 import { Stack } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -18,6 +22,9 @@ export default function RootLayout() {
   );
 }
   */
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  console.log('🔥 ERRO GLOBAL:', error);
+});
 
 export default function RootLayout() {
   return (
