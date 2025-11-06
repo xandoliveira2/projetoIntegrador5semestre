@@ -1,6 +1,7 @@
-import React, { cloneElement, useState } from "react";
+import React, { cloneElement } from "react";
 import {
   Alert,
+  Dimensions,
   Platform,
   StyleSheet,
   Text,
@@ -17,28 +18,46 @@ interface Option {
 interface OptionsMenuProps {
   options: Option[];
   icon: React.ReactElement<{ onPress?: () => void }>;
+  visible?: boolean;
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
-const OptionsMenu: React.FC<OptionsMenuProps> = ({ options, icon }) => {
-  const [visible, setVisible] = useState(false);
-
+const OptionsMenu: React.FC<OptionsMenuProps> = ({
+  options,
+  icon,
+  visible = false,
+  onOpen,
+  onClose,
+}) => {
   const handleOpen = () => {
     if (Platform.OS === "web") {
       Alert.alert("Aviso", "Menu popover não é suportado no Web");
       return;
     }
-    setVisible(true);
+    onOpen?.();
   };
 
-  const handleClose = () => setVisible(false);
+  const handleClose = () => onClose?.();
 
   return (
     <Popover
       isVisible={visible}
       onRequestClose={handleClose}
       placement={Placement.BOTTOM}
-      from={() => cloneElement(icon, { onPress: handleOpen })}
-      animationConfig={{ duration: 60 }}
+      from={() =>
+        cloneElement(icon, {
+          onPress: handleOpen,
+        })
+      }
+      // 🔹 Corrige bugs de posição em ScrollView
+      displayArea={{
+        x: 0,
+        y: 0,
+        width: Dimensions.get("window").width,
+        height: Dimensions.get("window").height,
+      }}
+      animationConfig={{ duration: 120 }}
     >
       <View style={styles.menuContent}>
         {options.map((opt, index) => (

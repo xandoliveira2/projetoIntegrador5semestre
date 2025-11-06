@@ -1,24 +1,24 @@
-import React from 'react';
-import { Alert, ScrollView, View, Text } from 'react-native';
+import React, { useState } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
 
-import Date from '@/components/Date';
-import EmptyListMessage from '@/components/EmptyListMessage';
-import FormButton from '@/components/FormButton';
-import Formulario from '@/components/Formulario';
-import OptionsMenu from '@/components/OptionsMenu'; // ✅ novo import
-import { styles } from '@/styles/IconButtonStyle';
+import Date from "@/components/Date";
+import EmptyListMessage from "@/components/EmptyListMessage";
+import FormButton from "@/components/FormButton";
+import Formulario from "@/components/Formulario";
+import OptionsMenu from "@/components/OptionsMenu";
+import { styles } from "@/styles/IconButtonStyle";
 
 export default function Ativo() {
   const totalUsuarios = 15;
   const qtdRespondidos = 6;
-  
+
   const formularios = [
-    
-    { id: 1, texto: 'Pesquisa de satisfação 2023', data: '12/06/2023' },
-    /*
-    { id: 2, texto: 'Avaliação de serviço 2024', data: '15/10/2024' },*/
-     
+    { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
+    // { id: 2, texto: "Avaliação de serviço 2024", data: "15/10/2024" },
   ];
+
+  // 🔹 Estado para controlar qual menu está aberto
+  const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
 
   return (
     <View style={{ flex: 1 }}>
@@ -29,25 +29,41 @@ export default function Ativo() {
           formularios.map((f) => (
             <View key={f.id} style={{ marginTop: 15 }}>
               <Date data={f.data} />
+
               <Formulario texto={f.texto}>
-                
                 <OptionsMenu
+                  // 🔹 Passa o estado de visibilidade controlado externamente
+                  visible={menuAbertoId === f.id}
+                  onOpen={() => setMenuAbertoId(f.id)}
+                  onClose={() => setMenuAbertoId(null)}
                   icon={
                     <FormButton
                       style={styles.container}
-                      icon={require('@/../assets/icons/engrenagem_branco.png')}
+                      icon={require("@/../assets/icons/engrenagem_branco.png")}
                       iconSize={29}
-                      onPress={() => console.log("clicado")} />
+                      onPress={() => {}}
+                    />
                   }
                   options={[
-                    { title: '✏️ Editar', onPress: () => Alert.alert('Editar', f.texto) },
-                    { title: '📅 Alterar Data', onPress: () => Alert.alert('Alterar data', f.data) },
-                    { title: '🛑 Encerrar', onPress: () => Alert.alert('Encerrar', f.texto) },
+                    {
+                      title: "✏️ Editar",
+                      onPress: () => Alert.alert("Editar", f.texto),
+                    },
+                    {
+                      title: "📅 Alterar Data",
+                      onPress: () => Alert.alert("Alterar data", f.data),
+                    },
+                    {
+                      title: "🛑 Encerrar",
+                      onPress: () => Alert.alert("Encerrar", f.texto),
+                    },
                   ]}
                 />
-
               </Formulario>
-             <Text>Respondidos: {qtdRespondidos}/{totalUsuarios}</Text>
+
+              <Text>
+                Respondidos: {qtdRespondidos}/{totalUsuarios}
+              </Text>
             </View>
           ))
         )}
