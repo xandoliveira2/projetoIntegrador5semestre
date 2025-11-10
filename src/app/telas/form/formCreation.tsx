@@ -1,7 +1,12 @@
-import React from "react";
-import { Text, View, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { Text, View, Alert } from "react-native";
+import OptionsMenu from "@/components/OptionsMenu";
+import FormButton from "@/components/FormButton";
+import { styles } from "@/styles/IconButtonStyle";
 
 export default function FormularioTela() {
+  const [menuAberto, setMenuAberto] = useState(false);
+
   return (
     <View
       style={{
@@ -24,30 +29,41 @@ export default function FormularioTela() {
         Nome do Formulário
       </Text>
 
-      {/* Botão Nova Pergunta */}
-      <TouchableOpacity
-        onPress={() => console.log("Nova pergunta")}
-        style={{
-          backgroundColor: "#ff8c00",
-          paddingVertical: 12,
-          paddingHorizontal: 25,
-          borderRadius: 8,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ fontSize: 22, color: "#fff", fontWeight: "bold" }}>＋</Text>
-        <Text
-          style={{
-            fontSize: 18,
-            color: "#fff",
-            fontWeight: "bold",
-            marginLeft: 8,
-          }}
-        >
-          Nova Pergunta
-        </Text>
-      </TouchableOpacity>
+      {/* Botão "Nova Pergunta" com OptionsMenu */}
+      <OptionsMenu
+        visible={menuAberto}
+        onOpen={() => setMenuAberto(true)}
+        onClose={() => setMenuAberto(false)}
+        icon={
+          <FormButton
+            style={{
+              backgroundColor: "#ff8c00",
+              paddingVertical: 12,
+              paddingHorizontal: 25,
+              borderRadius: 8,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+            text="＋ Nova Pergunta"
+            textStyle={{
+              fontSize: 18,
+              color: "#fff",
+              fontWeight: "bold",
+            }}
+            onPress={() => setMenuAberto(true)}
+          />
+        }
+        options={[
+          {
+            title: "📝 Dissertativa",
+            onPress: () => Alert.alert("Nova Pergunta", "Tipo: Dissertativa"),
+          },
+          {
+            title: "🔘 Alternativa",
+            onPress: () => Alert.alert("Nova Pergunta", "Tipo: Alternativa"),
+          },
+        ]}
+      />
     </View>
   );
 }

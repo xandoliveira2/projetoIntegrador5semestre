@@ -1,7 +1,6 @@
 import React from "react";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { TouchableOpacity, View, Image } from "react-native";
-import { useRouter } from "expo-router";
 
 export default function Layout() {
   const router = useRouter();
@@ -9,6 +8,8 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
+        // força o uso do header local, escondendo o global
+        headerShown: true,
         headerTitle: "",
         headerShadowVisible: false,
         headerStyle: { backgroundColor: "#fff" },
@@ -21,7 +22,7 @@ export default function Layout() {
               borderColor: "#ccc",
               borderRadius: 50,
               width: 40,
-              height:40,
+              height: 40,
               justifyContent: "center",
               alignItems: "center",
             }}
