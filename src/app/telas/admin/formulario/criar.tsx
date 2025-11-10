@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter } from "expo-router"; // ✅ importação do hook de navegação
 
 import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
@@ -17,6 +18,8 @@ import OptionsMenu from "@/components/OptionsMenu";
 import { styles } from "@/styles/IconButtonStyle";
 
 export default function Criar() {
+  const router = useRouter(); // ✅ instância do roteador
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
 
@@ -27,9 +30,10 @@ export default function Criar() {
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
 
+  // ✅ Navega para a tela do formulário ao continuar
   const handleContinue = () => {
-    Alert.alert("Ação!", "Clicou em Continuar!");
     handleCloseModal();
+    router.push("@/app/telas/form/formCreation"); // 🚀 vai para a tela do formulário
   };
 
   const formularios = [
@@ -121,7 +125,7 @@ export default function Criar() {
       <ModalNovoFormulario
         isVisible={isModalVisible}
         onClose={handleCloseModal}
-        onContinue={handleContinue}
+        onContinue={handleContinue} // ✅ navegação adicionada
       />
 
       {/* Modal de confirmação de exclusão */}
