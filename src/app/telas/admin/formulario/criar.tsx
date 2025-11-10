@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
@@ -11,6 +18,11 @@ import { styles } from "@/styles/IconButtonStyle";
 
 export default function Criar() {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
+
+  // 🔹 Controle do modal de confirmação de exclusão
+  const [showExcluirModal, setShowExcluirModal] = useState(false);
+  const [formularioSelecionado, setFormularioSelecionado] = useState<string | null>(null);
 
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
@@ -20,13 +32,20 @@ export default function Criar() {
     handleCloseModal();
   };
 
-  // 🔹 Estado para controlar qual menu está aberto
-  const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
-
   const formularios = [
     { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
     { id: 2, texto: "Avaliação de serviço 2024", data: "15/10/2024" },
   ];
+
+  const handleExcluir = (texto: string) => {
+    setFormularioSelecionado(texto);
+    setShowExcluirModal(true);
+  };
+
+  const confirmarExclusao = () => {
+    setShowExcluirModal(false);
+    Alert.alert("Excluído!", `O formulário "${formularioSelecionado}" foi excluído.`);
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -88,7 +107,7 @@ export default function Criar() {
                     },
                     {
                       title: "🗑️ Excluir",
-                      onPress: () => Alert.alert("Excluir", f.texto),
+                      onPress: () => handleExcluir(f.texto),
                     },
                   ]}
                 />
@@ -104,6 +123,77 @@ export default function Criar() {
         onClose={handleCloseModal}
         onContinue={handleContinue}
       />
+
+      {/* Modal de confirmação de exclusão */}
+      <Modal
+        transparent
+        visible={showExcluirModal}
+        animationType="fade"
+        onRequestClose={() => setShowExcluirModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              padding: 20,
+              width: "80%",
+              alignItems: "center",
+              elevation: 5,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "600",
+                textAlign: "center",
+                marginBottom: 20,
+              }}
+            >
+              Tem certeza que deseja excluir{"\n"}esse formulário?
+            </Text>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-around",
+                width: "100%",
+              }}
+            >
+              <TouchableOpacity
+                onPress={confirmarExclusao}
+                style={{
+                  backgroundColor: "#ff4d4d",
+                  paddingVertical: 10,
+                  paddingHorizontal: 25,
+                  borderRadius: 6,
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "bold" }}>Excluir</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setShowExcluirModal(false)}
+                style={{
+                  backgroundColor: "#ccc",
+                  paddingVertical: 10,
+                  paddingHorizontal: 25,
+                  borderRadius: 6,
+                }}
+              >
+                <Text style={{ color: "#333", fontWeight: "bold" }}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
