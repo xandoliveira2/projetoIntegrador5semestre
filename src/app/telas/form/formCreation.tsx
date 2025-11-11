@@ -142,67 +142,61 @@ export default function FormularioTela() {
 
               {/* Campo de título */}
               <View style={{
-              flex:1, 
-              
-              flexDirection:'row'
-              
+                flex:1, 
+                flexDirection:'row'
               }}>
-              <Text
-              style={{
-              alignSelf: 'center',
-              
-              }}
-              >{index+1+" - "}</Text>
-              <TextInput
-                placeholder={`Pergunta`}
-                value={pergunta.titulo}
-                onChangeText={(t) => atualizarPergunta(pergunta.id, t)}
-                style={{
-                  flex:1,
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 6,
-                  padding: 8,
-                  marginBottom: 5,
-                  marginTop:5
-                }}
-              />
+                <Text
+                  style={{
+                    alignSelf: 'center',
+                  }}
+                >{index+1+" - "}</Text>
+                <TextInput
+                  placeholder={`Pergunta`}
+                  value={pergunta.titulo}
+                  onChangeText={(t) => atualizarPergunta(pergunta.id, t)}
+                  style={{
+                    flex:1,
+                    borderWidth: 1,
+                    borderColor: "#ddd",
+                    borderRadius: 6,
+                    padding: 8,
+                    marginBottom: 5,
+                    marginTop:5
+                  }}
+                />
               </View>
 
               {/* Alternativas */}
               {pergunta.tipo === "alternativa" &&
                 pergunta.opcoes.map((op: string, i: number) => (
-                <View style={{
-              flex:1, 
-              
-              flexDirection:'row',
-              }}
-              >
-              
-                  <Text
-              style={{
-              alignSelf: 'center',
-              
-              }}
-              >{`${String.fromCharCode(97 + i)}) `}</Text>
-              
-                  <TextInput
-                    key={i}
-                    placeholder={``}
-                    value={op}
-                    onChangeText={(t) => atualizarOpcao(pergunta.id, i, t)}
+                  <View
+                    key={`${pergunta.id}-opcao-${i}`} // ← correção: key no elemento externo
                     style={{
-                      flex:1,
-                      borderWidth: 1,
-                      borderColor: "#ddd",
-                      borderRadius: 6,
-                      padding: 8,
-                      marginBottom: 4,
-                      marginTop:4,
+                      flex:1, 
+                      flexDirection:'row',
                     }}
-                  />
+                  >
+                    <Text
+                      style={{
+                        alignSelf: 'center',
+                      }}
+                    >{`${String.fromCharCode(97 + i)}) `}</Text>
+
+                    <TextInput
+                      placeholder={``}
+                      value={op}
+                      onChangeText={(t) => atualizarOpcao(pergunta.id, i, t)}
+                      style={{
+                        flex:1,
+                        borderWidth: 1,
+                        borderColor: "#ddd",
+                        borderRadius: 6,
+                        padding: 8,
+                        marginBottom: 4,
+                        marginTop:4,
+                      }}
+                    />
                   </View>
-                  
                 ))}
 
               {pergunta.tipo === "alternativa" && (
