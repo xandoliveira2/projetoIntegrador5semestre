@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Layout() {
   return (
@@ -25,8 +25,9 @@ const styles = StyleSheet.create({
     height: 60,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom:15,
+    //marginBottom:15,
     
+    /*
     // iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -35,6 +36,7 @@ const styles = StyleSheet.create({
 
     // Android
     elevation: 8,
+    */
   },
   title: {
     color: "#fff",
