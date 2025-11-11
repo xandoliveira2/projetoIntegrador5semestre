@@ -1,17 +1,16 @@
+import FormButton from "@/components/FormButton";
+import OptionsMenu from "@/components/OptionsMenu";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  View,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   TouchableWithoutFeedback,
-  Platform,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import OptionsMenu from "@/components/OptionsMenu";
-import FormButton from "@/components/FormButton";
 
 export default function FormularioTela() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -72,6 +71,17 @@ export default function FormularioTela() {
     setPerguntas(
       perguntas.map((p) =>
         p.id === id ? { ...p, opcoes: [...p.opcoes, ""] } : p
+      )
+    );
+  };
+
+  // 👉 Remove uma opção de uma pergunta alternativa
+  const removerOpcao = (id: number, index: number) => {
+    setPerguntas(
+      perguntas.map((p) =>
+        p.id === id
+          ? { ...p, opcoes: p.opcoes.filter((_, i) => i !== index) }
+          : p
       )
     );
   };
@@ -170,10 +180,11 @@ export default function FormularioTela() {
               {pergunta.tipo === "alternativa" &&
                 pergunta.opcoes.map((op: string, i: number) => (
                   <View
-                    key={`${pergunta.id}-opcao-${i}`} // ← correção: key no elemento externo
+                    key={`${pergunta.id}-opcao-${i}`} 
                     style={{
                       flex:1, 
                       flexDirection:'row',
+                      alignItems:'center'
                     }}
                   >
                     <Text
@@ -196,6 +207,14 @@ export default function FormularioTela() {
                         marginTop:4,
                       }}
                     />
+
+                    {/* ❌ Botão X para remover opção */}
+                    <TouchableOpacity
+                      onPress={() => removerOpcao(pergunta.id, i)}
+                      style={{ marginLeft: 8 }}
+                    >
+                      <Ionicons name="close-circle" size={22} color="red" />
+                    </TouchableOpacity>
                   </View>
                 ))}
 
