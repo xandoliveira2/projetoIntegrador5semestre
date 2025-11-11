@@ -141,35 +141,68 @@ export default function FormularioTela() {
               </View>
 
               {/* Campo de título */}
+              <View style={{
+              flex:1, 
+              
+              flexDirection:'row'
+              
+              }}>
+              <Text
+              style={{
+              alignSelf: 'center',
+              
+              }}
+              >{index+1+" - "}</Text>
               <TextInput
-                placeholder={`${index + 1} - Pergunta`}
+                placeholder={`Pergunta`}
                 value={pergunta.titulo}
                 onChangeText={(t) => atualizarPergunta(pergunta.id, t)}
                 style={{
+                  flex:1,
                   borderWidth: 1,
                   borderColor: "#ddd",
                   borderRadius: 6,
                   padding: 8,
-                  marginBottom: 10,
+                  marginBottom: 5,
+                  marginTop:5
                 }}
               />
+              </View>
 
               {/* Alternativas */}
               {pergunta.tipo === "alternativa" &&
                 pergunta.opcoes.map((op: string, i: number) => (
+                <View style={{
+              flex:1, 
+              
+              flexDirection:'row',
+              }}
+              >
+              
+                  <Text
+              style={{
+              alignSelf: 'center',
+              
+              }}
+              >{`${String.fromCharCode(97 + i)}) `}</Text>
+              
                   <TextInput
                     key={i}
-                    placeholder={`${String.fromCharCode(97 + i)})`}
+                    placeholder={``}
                     value={op}
                     onChangeText={(t) => atualizarOpcao(pergunta.id, i, t)}
                     style={{
+                      flex:1,
                       borderWidth: 1,
                       borderColor: "#ddd",
                       borderRadius: 6,
                       padding: 8,
-                      marginBottom: 8,
+                      marginBottom: 4,
+                      marginTop:4,
                     }}
                   />
+                  </View>
+                  
                 ))}
 
               {pergunta.tipo === "alternativa" && (
