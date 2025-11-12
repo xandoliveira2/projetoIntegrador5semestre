@@ -1,8 +1,6 @@
-import { useRouter } from "expo-router"; // ✅ importação do hook de navegação
 import React, { useState } from "react";
 import {
   Alert,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -12,61 +10,75 @@ import {
 import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
 import FormButton from "@/components/FormButton";
-import Formulario from "@/components/Formulario";
-import ModalNovoFormulario from "@/components/ModalNovoFormulario";
-import OptionsMenu from "@/components/OptionsMenu";
+import Usuario from "@/components/Usuario"; // ✅ agora suporta children
+import OptionsMenu from "@/components/OptionsMenu"; // ✅ menu como filho
+import ModalNovoUsuario from "@/components/ModalNovoUsuario"; // ✅ novo modal baseado na imagem
+
 import { styles } from "@/styles/IconButtonStyle";
 
 export default function CriarUsuario() {
-  const router = useRouter(); // ✅ instância do roteador
+  const [usuarios, setUsuarios] = useState([
+    { id: 1, nome: "Gabriel Alves", imagem: undefined },
+    { id: 2, nome: "Ana Souza", imagem: undefined },
+    { id: 3, nome: "Lucas Pereira", imagem: undefined },
+  ]);
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
 
-  // 🔹 Controle do modal de confirmação de exclusão
-  const [showExcluirModal, setShowExcluirModal] = useState(false);
-  const [formularioSelecionado, setFormularioSelecionado] = useState<string | null>(null);
-
-  const handleOpenModal = () => setIsModalVisible(true);
-  const handleCloseModal = () => setIsModalVisible(false);
-
-  // ✅ Navega para a tela do formulário ao continuar
-  const handleContinue = () => {
-    handleCloseModal();
+  // ✅ Abrir modal novo usuário
+  const handleNovoUsuario = () => {
+    setModalVisible(true);
   };
 
-  const formularios = [
-    { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
-    { id: 2, texto: "Avaliação de serviço 2024", data: "15/10/2024" },
-  ];
-
-  const handleExcluir = (texto: string) => {
-    setFormularioSelecionado(texto);
-    setShowExcluirModal(true);
+  // ✅ Receber dados do novo usuário
+  const handleSalvarUsuario = (novoUsuario: any) => {
+    setUsuarios((prev) => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        nome: novoUsuario.nome,
+        imagem: undefined,
+      },
+    ]);
+    setModalVisible(false);
   };
 
-  const confirmarExclusao = () => {
-    setShowExcluirModal(false);
-    Alert.alert("Excluído!", `O formulário "${formularioSelecionado}" foi excluído.`);
+  // ✅ Excluir usuário
+  const handleExcluir = (nome: string) => {
+    Alert.alert("Excluir Usuário", `Deseja excluir ${nome}?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: () =>
+          setUsuarios((prev) => prev.filter((u) => u.nome !== nome)),
+      },
+    ]);
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Botão principal */}
-      <FormButton
-        onPress={handleOpenModal}
-        text="Novo Usuário"
-        style={{
+    <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
+      
+      
+        {/* Botão para adicionar novo usuário */}
+        <FormButton
+          text="Adicionar Usuário"
+        /*  icon={require("@/../assets/icons/add_branco.png")}*/
+          iconSize={24}
+          style={{
           maxWidth: "60%",
           minWidth: "60%",
           alignSelf: "center",
-          marginTop: 35,
+         marginTop: 35,
+         marginBottom:60,
+         
           paddingVertical: 8,
         }}
         textSize={20}
-      />
-
-      <Text
+          onPress={handleNovoUsuario}
+        />
+              <Text
         style={{
           alignSelf: "center",
           marginTop: 65,
@@ -77,127 +89,51 @@ export default function CriarUsuario() {
         Usuários cadastrados
       </Text>
 
-      {/* Lista de formulários */}
-      <ScrollView style={{ padding: 20 }}>
-        {formularios.length === 0 ? (
-          <EmptyListMessage mensagem="Nenhum 
-usuário cadastrado" />
-        ) : (
-          formularios.map((f) => (
-            <View key={f.id} style={[f.id !== 1 ? { marginTop: 15 } : undefined]}>
-              <Date data={f.data} />
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 10,
+          paddingBottom: 120,
+        }}
+      >
 
-              <Formulario texto={f.texto}>
+        {/* Lista de usuários */}
+        {usuarios.length === 0 ? (
+          <EmptyListMessage text="Nenhum usuário cadastrado." />
+        ) : (
+          usuarios.map((u) => (
+            <View key={u.id} style={[u.id !== 1 ? { marginTop: 15 } : undefined]}>
+              <Usuario nome={u.nome} imagem={u.imagem}>
+                {/* ✅ OptionsMenu agora é filho de Usuario */}
                 <OptionsMenu
-                  visible={menuAbertoId === f.id}
-                  onOpen={() => setMenuAbertoId(f.id)}
+                  visible={menuAbertoId === u.id}
+                  onOpen={() => setMenuAbertoId(u.id)}
                   onClose={() => setMenuAbertoId(null)}
                   icon={
                     <FormButton
                       style={styles.container}
                       icon={require("@/../assets/icons/engrenagem_branco.png")}
                       iconSize={29}
-                      onPress={() => { }}
+                      onPress={() => {}}
                     />
                   }
                   options={[
-                    {
-                      title: "✏️ Editar",
-                      onPress: () => Alert.alert("Editar", f.texto),
-                    },
-                    {
-                      title: "📅 Lançar",
-                      onPress: () => Alert.alert("Lançar", f.data),
-                    },
-                    {
-                      title: "🗑️ Excluir",
-                      onPress: () => handleExcluir(f.texto),
-                    },
+                    { title: "✏️ Editar", onPress: () => Alert.alert("Editar", u.nome) },
+                    { title: "🗑️ Excluir", onPress: () => handleExcluir(u.nome) },
                   ]}
                 />
-              </Formulario>
+              </Usuario>
             </View>
           ))
         )}
       </ScrollView>
 
-      {/* Modal de novo formulário */}
-      <ModalNovoFormulario
-        isVisible={isModalVisible}
-        onClose={handleCloseModal}
-        onContinue={handleContinue} // ✅ navegação adicionada
+      {/* ✅ Modal de novo usuário (baseado na imagem) */}
+      <ModalNovoUsuario
+        isVisible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onConfirm={handleSalvarUsuario}
       />
-
-      {/* Modal de confirmação de exclusão */}
-      <Modal
-        transparent
-        visible={showExcluirModal}
-        animationType="fade"
-        onRequestClose={() => setShowExcluirModal(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: 10,
-              padding: 20,
-              width: "80%",
-              alignItems: "center",
-              elevation: 5,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 17,
-                fontWeight: "600",
-                textAlign: "center",
-                marginBottom: 20,
-              }}
-            >
-              Tem certeza que deseja excluir{"\n"}esse formulário?
-            </Text>
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-around",
-                width: "100%",
-              }}
-            >
-              <TouchableOpacity
-                onPress={confirmarExclusao}
-                style={{
-                  backgroundColor: "#ff4d4d",
-                  paddingVertical: 10,
-                  paddingHorizontal: 25,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>Excluir</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setShowExcluirModal(false)}
-                style={{
-                  backgroundColor: "#ccc",
-                  paddingVertical: 10,
-                  paddingHorizontal: 25,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: "#333", fontWeight: "bold" }}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
