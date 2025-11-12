@@ -1,73 +1,96 @@
 import React, { useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, View, FlatList } from "react-native";
 
 import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
 import FormButton from "@/components/FormButton";
-import Formulario from "@/components/Formulario";
 import OptionsMenu from "@/components/OptionsMenu";
 import { styles } from "@/styles/IconButtonStyle";
+import FormularioExpandivel from "@/components/FormularioExpandivel";
 
 export default function Ativo() {
-  const totalUsuarios = 15;
-  const qtdRespondidos = 6;
-
   const formularios = [
-    { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
-    // { id: 2, texto: "Avaliação de serviço 2024", data: "15/10/2024" },
+    {
+      id: 1,
+      titulo: "Pesquisa de satisfação 2023",
+      data: "12/06/2023",
+      usuarios: [
+        { id: 1, nome: "João", respondido: true },
+        { id: 2, nome: "Maria", respondido: true },
+        { id: 3, nome: "Pedro", respondido: false },
+        { id: 4, nome: "Ana", respondido: true },
+      ],
+    },
+    {
+      id: 2,
+      titulo: "Avaliação de serviço 2024",
+      data: "15/10/2024",
+      usuarios: [
+        { id: 1, nome: "Carlos", respondido: false },
+        { id: 2, nome: "Jéssica", respondido: false },
+        { id: 3, nome: "Bruno", respondido: true },
+      ],
+    },
   ];
 
-  // 🔹 Estado para controlar qual menu está aberto
   const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView style={{ padding: 20 }}>
-        {formularios.length === 0 ? (
-          <EmptyListMessage mensagem="Nenhum formulário ativo" />
-        ) : (
-          formularios.map((f) => (
-            <View key={f.id} style={{ marginTop: 15 }}>
-              <Date data={f.data} />
+    <View style={{ flex: 1, padding: 20 }}>
+      {formularios.length === 0 ? (
+        <EmptyListMessage mensagem="Nenhum formulário ativo" />
+      ) : (
+        <FlatList
+          data={formularios}
+          keyExtractor={(item) => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item: f }) => {
+            const total = f.usuarios.length;
+            const respondidos = f.usuarios.filter((u) => u.respondido).length;
 
-              <Formulario texto={f.texto}>
-                <OptionsMenu
-                  // 🔹 Passa o estado de visibilidade controlado externamente
-                  visible={menuAbertoId === f.id}
-                  onOpen={() => setMenuAbertoId(f.id)}
-                  onClose={() => setMenuAbertoId(null)}
-                  icon={
-                    <FormButton
-                      style={styles.container}
-                      icon={require("@/../assets/icons/engrenagem_branco.png")}
-                      iconSize={29}
-                      onPress={() => {}}
-                    />
-                  }
-                  options={[
-                    {
-                      title: "✏️ Editar",
-                      onPress: () => Alert.alert("Editar", f.texto),
-                    },
-                    {
-                      title: "📅 Alterar Data",
-                      onPress: () => Alert.alert("Alterar data", f.data),
-                    },
-                    {
-                      title: "🛑 Encerrar",
-                      onPress: () => Alert.alert("Encerrar", f.texto),
-                    },
-                  ]}
-                />
-              </Formulario>
+            return (
+              <View style={{ marginTop: 15 }}>
+                <Date data={f.data} />
 
-              <Text>
-                Respondidos: {qtdRespondidos}/{totalUsuarios}
-              </Text>
-            </View>
-          ))
-        )}
-      </ScrollView>
+                <FormularioExpandivel
+                  titulo={f.titulo}
+                  respondidos={respondidos}
+                  total={total}
+                  usuarios={f.usuarios}
+                >
+                  <OptionsMenu
+                    visible={menuAbertoId === f.id}
+                    onOpen={() => setMenuAbertoId(f.id)}
+                    onClose={() => setMenuAbertoId(null)}
+                    icon={
+                      <FormButton
+                        style={styles.container}
+                        icon={require("@/../assets/icons/engrenagem_branco.png")}
+                        iconSize={29}
+                        onPress={() => {}}
+                      />
+                    }
+                    options={[
+                      {
+                        title: "✏️ Editar",
+                        onPress: () => Alert.alert("Editar", f.titulo),
+                      },
+                      {
+                        title: "📅 Alterar Data",
+                        onPress: () => Alert.alert("Alterar data", f.data),
+                      },
+                      {
+                        title: "🛑 Encerrar",
+                        onPress: () => Alert.alert("Encerrar", f.titulo),
+                      },
+                    ]}
+                  />
+                </FormularioExpandivel>
+              </View>
+            );
+          }}
+        />
+      )}
     </View>
   );
 }
