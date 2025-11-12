@@ -16,7 +16,7 @@ const { width } = Dimensions.get("window");
 interface ModalNovoUsuarioProps {
   isVisible: boolean;
   onClose: () => void;
-  onContinue: (data: FormData) => void;
+  onConfirm: (data: FormData) => void;
 }
 
 // Dados do formulário
@@ -30,7 +30,7 @@ interface FormData {
 const ModalNovoUsuario: React.FC<ModalNovoUsuarioProps> = ({
   isVisible,
   onClose,
-  onContinue,
+  onConfirm,
 }) => {
   if (!isVisible) return null;
 
@@ -50,7 +50,7 @@ const ModalNovoUsuario: React.FC<ModalNovoUsuarioProps> = ({
     }
 
     const formData: FormData = { nome, login, senha, confirmarSenha };
-    onContinue(formData);
+    onConfirm(formData);
   };
 
   return (

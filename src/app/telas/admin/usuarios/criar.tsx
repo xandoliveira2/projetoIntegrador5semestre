@@ -3,16 +3,14 @@ import {
   Alert,
   ScrollView,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
-import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
 import FormButton from "@/components/FormButton";
-import Usuario from "@/components/Usuario"; // ✅ agora suporta children
-import OptionsMenu from "@/components/OptionsMenu"; // ✅ menu como filho
 import ModalNovoUsuario from "@/components/ModalNovoUsuario"; // ✅ novo modal baseado na imagem
+import OptionsMenu from "@/components/OptionsMenu"; // ✅ menu como filho
+import Usuario from "@/components/Usuario"; // ✅ agora suporta children
 
 import { styles } from "@/styles/IconButtonStyle";
 
@@ -99,7 +97,7 @@ export default function CriarUsuario() {
 
         {/* Lista de usuários */}
         {usuarios.length === 0 ? (
-          <EmptyListMessage text="Nenhum usuário cadastrado." />
+          <EmptyListMessage mensagem="Nenhum usuário cadastrado." />
         ) : (
           usuarios.map((u) => (
             <View key={u.id} style={[u.id !== 1 ? { marginTop: 15 } : undefined]}>
