@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 export default function ParaResponder() {
   const router = useRouter(); // ✅ instância do 
   const handleResponder = () => {
-    router.push("./../responderFormulario"); // 🚀 vai para a tela do formulário
+    router.push("./../responderFormulario/index"); // 🚀 vai para a tela do formulário
   };
   const formularios: any[] = [
 
