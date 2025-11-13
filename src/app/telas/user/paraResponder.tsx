@@ -5,8 +5,14 @@ import Date from '@/components/Date';
 import EmptyListMessage from '@/components/EmptyListMessage';
 import FormButton from '@/components/FormButton';
 import Formulario from '@/components/Formulario';
+import { useRouter } from "expo-router";
+
 
 export default function ParaResponder() {
+  const router = useRouter(); // ✅ instância do 
+  const handleResponder = () => {
+    router.push("./../responderFormulario"); // 🚀 vai para a tela do formulário
+  };
   const formularios: any[] = [
 
         {
@@ -42,10 +48,8 @@ export default function ParaResponder() {
                                 <FormButton
                                     text="Responder"
                                     style={{  }}
-                                    onPress={() => {
-                                        // Adicione aqui a ação desejada ao pressionar o botão
-                                        console.log(`Responder formulário ${f.id}`);
-                                    }}
+                                    onPress={handleResponder
+                                    }
                                 />
                             </Formulario>
                         </View>
