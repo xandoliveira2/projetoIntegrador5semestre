@@ -1,8 +1,6 @@
+import { Stack, useRouter } from "expo-router";
 import React from "react";
-import { Stack } from "expo-router";
-import { TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Image, TouchableOpacity, View } from "react-native";
 
 export default function Layout() {
   const router = useRouter();
@@ -10,23 +8,56 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerTitle: "Responder Formulário",
-        headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: "#fff",
-          height: 60, // ⬅️ diminui a altura (padrão é ~90 em alguns dispositivos)
-        },
-        headerTitleStyle: {
-          fontWeight: "bold",
-          fontSize: 18, // opcional, pode ajustar o tamanho da fonte também
-        },
-        headerLeftContainerStyle: {
-          paddingLeft: 10, // evita que o botão fique muito colado na borda
-        },
-        headerLeft: () => (
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} color="#000" />
-          </TouchableOpacity>
+        headerShown: true,
+        header: () => (
+          <View
+            style={{
+              height: 60, // 🔥 Aqui sim funciona
+              backgroundColor: "#fff",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 15,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{
+                borderWidth: 1.5,
+                borderColor: "#ccc",
+                borderRadius: 50,
+                width: 40,
+                height: 40,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Image
+                source={require("@/../assets/icons/seta_esquerda.png")}
+                style={{ width: 20, height: 20 }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => console.log("Menu aberto")}
+              style={{
+                borderWidth: 1.5,
+                borderColor: "#ccc",
+                borderRadius: 50,
+                width: 40,
+                height: 40,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Image
+                source={require("@/../assets/icons/menu_tres_pontos.png")}
+                style={{ width: 20, height: 20 }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
         ),
       }}
     />
