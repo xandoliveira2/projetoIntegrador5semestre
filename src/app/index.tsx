@@ -1,21 +1,59 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { db } from "@/firebase/firebaseConfig";
 import { useRouter } from 'expo-router';
+import { doc, getDoc } from "firebase/firestore";
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function Login() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  function handleLogin() {
-    if (username === 'admin' && password === '123') {
-      router.push('./telas/admin');
-    } else if (username === 'user' && password === '123') {
-      router.push('./telas/user');
-    } else {
-      Alert.alert('Erro', 'Usuário ou senha incorretos');
+  const handleLogin = async () => {
+    try {
+      // 1️⃣ Buscar o documento do usuário no Firestore usando o login
+      alert("A");
+      const userRef = doc(db, "user", username);
+      const userSnap = await getDoc(userRef);
+      alert("C");
+
+      if (!userSnap.exists()) {
+        Alert.alert("Erro", "Usuário não encontrado!");
+        return;
+      }
+        alert("oi")
+      const userData = userSnap.data();
+      const senhaCorreta = userData.senha;
+      const isAdmin = userData.administrador || false;
+
+      // 2️⃣ Verificar se a senha digitada é correta
+      if (password !== senhaCorreta) {
+        Alert.alert("Erro", "Senha incorreta!");
+        return;
+      }
+
+      // 3️⃣ Redirecionar de acordo com o tipo do usuário
+      if (isAdmin) {
+        Alert.alert("Sucesso", `Bem-vindo administrador ${username}!`);
+        router.push("./telas/admin");
+      } else {
+        Alert.alert("Sucesso", `Bem-vindo, ${username}!`);
+        router.push("./telas/user");
+      }
+
+    } catch (error) {
+      alert("Vamo ve");
+      console.error(error);
+      
+        alert("Chegou aqui");
+         // Alert.alert("Erro ao logar", error.message);
+        // if (error instanceof Error) {
+        //   Alert.alert("Erro ao logar", error.message);
+        // } else {
+        //   Alert.alert("Erro ao logar", String(error));
+        // }
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -25,7 +63,7 @@ export default function Login() {
         placeholder="Usuário"
         value={username}
         onChangeText={setUsername}
-        autoCapitalize='none'
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
@@ -42,12 +80,34 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  title: { fontSize: 24, marginBottom: 20 },
-  input: {
-    borderWidth: 1, borderColor: '#ccc', borderRadius: 8,
-    width: '80%', padding: 10, marginVertical: 8,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff'
   },
-  button: { backgroundColor: 'orange', padding: 12, borderRadius: 8, marginTop: 10, width: '80%' },
-  buttonText: { color: '#fff', fontSize: 16, textAlign: 'center' },
+  title: {
+    fontSize: 24,
+    marginBottom: 20
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    width: '80%',
+    padding: 10,
+    marginVertical: 8,
+  },
+  button: {
+    backgroundColor: 'orange',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+    width: '80%'
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center'
+  },
 });
