@@ -12,16 +12,16 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       // 1️⃣ Buscar o documento do usuário no Firestore usando o login
-      alert("A");
+     
       const userRef = doc(db, "user", username);
       const userSnap = await getDoc(userRef);
-      alert("C");
+      
 
       if (!userSnap.exists()) {
         Alert.alert("Erro", "Usuário não encontrado!");
         return;
       }
-        alert("oi")
+       
       const userData = userSnap.data();
       const senhaCorreta = userData.senha;
       const isAdmin = userData.administrador || false;
@@ -42,16 +42,7 @@ export default function Login() {
       }
 
     } catch (error) {
-      alert("Vamo ve");
       console.error(error);
-      
-        alert("Chegou aqui");
-         // Alert.alert("Erro ao logar", error.message);
-        // if (error instanceof Error) {
-        //   Alert.alert("Erro ao logar", error.message);
-        // } else {
-        //   Alert.alert("Erro ao logar", String(error));
-        // }
     }
   };
 
