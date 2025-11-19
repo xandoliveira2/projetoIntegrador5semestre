@@ -33,7 +33,7 @@ export default function Criar() {
   // ✅ Navega para a tela do formulário ao continuar
   const handleContinue = () => {
     handleCloseModal();
-    router.push("./../../form/formCreation"); // 🚀 vai para a tela do formulário
+    router.push("/telas/form/formCreation"); // 🚀 vai para a tela do formulário
   };
 
   const formularios = [
