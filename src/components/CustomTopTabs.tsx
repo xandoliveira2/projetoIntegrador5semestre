@@ -1,6 +1,6 @@
-import React from "react";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { View, Text, TouchableOpacity } from "react-native";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -35,7 +35,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
         <View
             style={{
                 flexDirection: "row",
-                justifyContent: "space-around",
+                justifyContent: "center",
+                gap:30,
                 backgroundColor: "#f5f5f5",
                 paddingVertical: 10,
             }}

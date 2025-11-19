@@ -12,8 +12,6 @@ import {
 } from 'react-native';
 
 // 1. Importações dos Novos Componentes
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
 
 // Obter a largura da tela para um layout responsivo
 const { width } = Dimensions.get('window');
@@ -125,62 +123,6 @@ const ModalNovoFormulario: React.FC<ModalNovoFormularioProps> = ({ isVisible, on
               onChangeText={setNome}
             />
 
-            {/* Campo Intervalo (Picker) */}
-            <Text style={styles.label}>Intervalo</Text>
-            <View style={[styles.inputContainer, { backgroundColor: INPUT_BACKGROUND_COLOR, paddingHorizontal: 0 }]}>
-              <Picker
-                selectedValue={intervalo}
-                onValueChange={(itemValue) => setIntervalo(itemValue)}
-                style={styles.picker}
-                itemStyle={Platform.OS === 'ios' ? { height: 40 } : {}} // Ajuste no iOS
-              >
-                <Picker.Item label="Com intervalo" value="Com intervalo" />
-                <Picker.Item label="Sem intervalo" value="Sem intervalo" />
-              </Picker>
-            </View>
-            {intervalo == "Com intervalo" ? (
-            <View style={styles.dateRow}>
-              {/* Data Início */}
-              <View style={styles.dateColumn}>
-                <Text style={styles.label}>Data início</Text>
-                <TouchableOpacity onPress={() => setShowDatePickerInicio(true)} style={[styles.dateInputTouchable, { backgroundColor: INPUT_BACKGROUND_COLOR }]}>
-                  <Text style={styles.dateText}>{formatDate(dataInicio)}</Text>
-                </TouchableOpacity>
-
-                {/* Date Picker (Início) */}
-                {(showDatePickerInicio || Platform.OS === 'ios') && (
-                    <DateTimePicker
-                        testID="datePickerInicio"
-                        value={dataInicio}
-                        mode="date"
-                        is24Hour={true}
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'} // Melhor visual em cada plataforma
-                        onChange={onChangeDateInicio}
-                    />
-                )}
-              </View>
-
-              {/* Data Final */}
-              <View style={styles.dateColumn}>
-                <Text style={styles.label}>Data final</Text>
-                <TouchableOpacity onPress={() => setShowDatePickerFinal(true)} style={[styles.dateInputTouchable, { backgroundColor: INPUT_BACKGROUND_COLOR }]}>
-                  <Text style={styles.dateText}>{formatDate(dataFinal)}</Text>
-                </TouchableOpacity>
-
-                {/* Date Picker (Final) */}
-                {(showDatePickerFinal || Platform.OS === 'ios') && (
-                    <DateTimePicker
-                        testID="datePickerFinal"
-                        value={dataFinal}
-                        mode="date"
-                        is24Hour={true}
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        onChange={onChangeDateFinal}
-                    />
-                )}
-              </View>
-            </View>
-):(undefined)}
 
             {/* Linha de Botões */}
             <View style={styles.buttonRow}>

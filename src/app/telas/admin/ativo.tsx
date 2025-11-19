@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router"; // ✅ importação do hook de navegação
 import React, { useState } from "react";
 import {
   Alert,
@@ -7,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useRouter } from "expo-router"; // ✅ importação do hook de navegação
 
 import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
@@ -38,7 +38,6 @@ export default function Criar() {
 
   const formularios = [
     { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
-    { id: 2, texto: "Avaliação de serviço 2024", data: "15/10/2024" },
   ];
 
   const handleExcluir = (texto: string) => {
@@ -75,7 +74,7 @@ export default function Criar() {
           fontWeight: "bold",
         }}
       >
-        Pendentes
+        Formulário ativo
       </Text>
 
       {/* Lista de formulários */}
@@ -106,7 +105,7 @@ export default function Criar() {
                       onPress: () => Alert.alert("Editar", f.texto),
                     },
                     {
-                      title: "📅 Lançar",
+                      title: "   Encerrar",
                       onPress: () => Alert.alert("Lançar", f.data),
                     },
                     {

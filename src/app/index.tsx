@@ -35,7 +35,7 @@ export default function Login() {
       // 3️⃣ Redirecionar de acordo com o tipo do usuário
       if (isAdmin) {
         Alert.alert("Sucesso", `Bem-vindo administrador ${username}!`);
-        router.push("./telas/admin");
+        router.push("/telas/admin/ativo");
       } else {
         Alert.alert("Sucesso", `Bem-vindo, ${username}!`);
         router.push("./telas/user");
