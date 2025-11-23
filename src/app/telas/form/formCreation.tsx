@@ -1,6 +1,7 @@
 import FormButton from "@/components/FormButton";
 import OptionsMenu from "@/components/OptionsMenu";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
   Platform,
@@ -17,6 +18,7 @@ export default function FormularioTela() {
   const [perguntas, setPerguntas] = useState<any[]>([]);
   const [selecionada, setSelecionada] = useState<number | null>(null);
 
+  const {nome} = useLocalSearchParams();
   // 👉 Adiciona pergunta nova
   const adicionarPergunta = (tipo: string) => {
     const novaPergunta = {
@@ -288,7 +290,7 @@ export default function FormularioTela() {
             marginBottom: 30,
           }}
         >
-          Nome do Formulário
+          {nome ?? "- Nome não identificado -"}
         </Text>
 
         {/* Scroll que evita o teclado automaticamente */}

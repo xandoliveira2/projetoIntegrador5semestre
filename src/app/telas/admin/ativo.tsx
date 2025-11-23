@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router"; // ✅ importação do hook de navegação
-import React, { useState } from "react";
+import React, { useEffect,useState } from "react";
 import {
   Alert,
   Modal,
@@ -16,12 +16,16 @@ import Formulario from "@/components/Formulario";
 import ModalNovoFormulario from "@/components/ModalNovoFormulario";
 import OptionsMenu from "@/components/OptionsMenu";
 import { styles } from "@/styles/IconButtonStyle";
+import {FormData as FD} from "@/components/ModalNovoFormulario";
+import { collection, getDocs , query, where} from "firebase/firestore";
+import { db } from "@/firebase/firebaseConfig";
+
 
 export default function Criar() {
   const router = useRouter(); // ✅ instância do roteador
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [menuAbertoId, setMenuAbertoId] = useState<number | null>(null);
+  const [menuAbertoId, setMenuAbertoId] = useState<string>("");
 
   // 🔹 Controle do modal de confirmação de exclusão
   const [showExcluirModal, setShowExcluirModal] = useState(false);
@@ -29,16 +33,59 @@ export default function Criar() {
 
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
+useEffect(() => {
+  const fetchFormularios = async () => {
+    try {
+      const q = query(
+        collection(db, "formularios"),
+        where("status", "==", true)   // 👈 FILTRO AQUI
+      );
 
-  // ✅ Navega para a tela do formulário ao continuar
-  const handleContinue = () => {
-    handleCloseModal();
-    router.push("/telas/form/formCreation"); // 🚀 vai para a tela do formulário
+      const querySnapshot = await getDocs(q);
+
+      const lista: { id: string; texto: string; data: string }[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+
+        const dataCriacao = data.data_criacao?.toDate
+          ? data.data_criacao.toDate().toLocaleDateString("pt-BR")
+          : "Sem data";
+
+        lista.push({
+          id: doc.id,
+          texto: data.nome || "Sem nome",
+          data: dataCriacao,
+        });
+      });
+
+      setFormularios(lista);
+    } catch (error) {
+      console.error("Erro ao carregar formulários:", error);
+    }
   };
 
-  const formularios = [
-    { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
-  ];
+  fetchFormularios();
+}, []);
+  // ✅ Navega para a tela do formulário ao continuar
+  const handleContinue = (formData : FD)  => {
+    handleCloseModal();
+    router.push(
+      {
+      pathname : "/telas/form/formCreation",
+      params : {
+        nome : formData.nome
+          }
+      }
+    ); // 🚀 vai para a tela do formulário
+  };
+  const [formularios, setFormularios] = useState<
+  { id: string; texto: string; data: string }[]
+>([]);
+
+  // const formularios = [
+  //   { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
+  // ];
 
   const handleExcluir = (texto: string) => {
     setFormularioSelecionado(texto);
@@ -74,7 +121,7 @@ export default function Criar() {
           fontWeight: "bold",
         }}
       >
-        Formulário ativo
+        Formulários
       </Text>
 
       {/* Lista de formulários */}
@@ -83,14 +130,14 @@ export default function Criar() {
           <EmptyListMessage mensagem="Nenhum formulário ativo" />
         ) : (
           formularios.map((f) => (
-            <View key={f.id} style={[f.id !== 1 ? { marginTop: 15 } : undefined]}>
+            <View key={f.id}>
               <Date data={f.data} />
 
               <Formulario texto={f.texto}>
                 <OptionsMenu
                   visible={menuAbertoId === f.id}
                   onOpen={() => setMenuAbertoId(f.id)}
-                  onClose={() => setMenuAbertoId(null)}
+                  onClose={() => setMenuAbertoId("")}
                   icon={
                     <FormButton
                       style={styles.container}
@@ -108,7 +155,7 @@ export default function Criar() {
                       title: "   Encerrar",
                       onPress: () => Alert.alert("Lançar", f.data),
                     },
-                    {
+                    { 
                       title: "🗑️ Excluir",
                       onPress: () => handleExcluir(f.texto),
                     },
@@ -127,7 +174,7 @@ export default function Criar() {
         onContinue={handleContinue} // ✅ navegação adicionada
       />
 
-      {/* Modal de confirmação de exclusão */}
+      {/* Modal de confirmação de exclusão */ }
       <Modal
         transparent
         visible={showExcluirModal}

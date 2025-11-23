@@ -1,6 +1,6 @@
 import { db } from "@/firebase/firebaseConfig";
 import { useRouter } from 'expo-router';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc,query, where,collection , getDocs} from "firebase/firestore";
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -11,38 +11,43 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      // 1️⃣ Buscar o documento do usuário no Firestore usando o login
-     
-      const userRef = doc(db, "user", username);
-      const userSnap = await getDoc(userRef);
-      
+      // 1️⃣ Buscar usuário pelo campo "usuario"
+      const q = query(
+        collection(db, "user"),
+        where("usuario", "==", username)
+      );
 
-      if (!userSnap.exists()) {
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
         Alert.alert("Erro", "Usuário não encontrado!");
         return;
       }
-       
-      const userData = userSnap.data();
-      const senhaCorreta = userData.senha;
-      const isAdmin = userData.administrador || false;
 
-      // 2️⃣ Verificar se a senha digitada é correta
-      if (password !== senhaCorreta) {
+      // Firestore pode retornar mais de 1, mas pegamos só o primeiro
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
+
+      // 2️⃣ Verificar senha
+      if (password !== userData.senha) {
         Alert.alert("Erro", "Senha incorreta!");
         return;
       }
 
-      // 3️⃣ Redirecionar de acordo com o tipo do usuário
+      // 3️⃣ Checar se é administrador
+      const isAdmin = userData.administrador === true;
+
       if (isAdmin) {
         Alert.alert("Sucesso", `Bem-vindo administrador ${username}!`);
-        router.push("/telas/admin/ativo");
+        router.push("./telas/admin/ativo");
       } else {
-        Alert.alert("Sucesso", `Bem-vindo, ${username}!`);
+        Alert.alert("Sucesso", `Bem-vindo ${username}!`);
         router.push("./telas/user");
       }
 
     } catch (error) {
       console.error(error);
+      Alert.alert("Erro", "Ocorreu um erro ao fazer login.");
     }
   };
 
@@ -59,8 +64,8 @@ export default function Login() {
       <TextInput
         style={styles.input}
         placeholder="Senha"
-        value={password}
         secureTextEntry
+        value={password}
         onChangeText={setPassword}
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -69,7 +74,6 @@ export default function Login() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

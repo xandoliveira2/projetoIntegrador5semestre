@@ -24,7 +24,7 @@ interface ModalNovoFormularioProps {
 }
 
 // Interface para o estado dos dados do formulário
-interface FormData {
+export interface FormData {
     nome: string;
     intervalo: 'Com intervalo' | 'Sem intervalo';
     dataInicio: Date;
