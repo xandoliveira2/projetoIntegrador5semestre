@@ -1,35 +1,99 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
+
+import { collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+
+import { db } from "@/firebase/firebaseConfig";
+
 import PerguntaAlternativa from "@/components/PerguntaAlternativa";
 import PerguntaDissertativa from "@/components/PerguntaDissertativa";
+import { useRouter } from 'expo-router';
+import {useAuth} from '@/context/AuthContext'
 
 export default function ResponderFormulario() {
-  const perguntas = [
-    {
-      id: 1,
-      tipo: "alternativa",
-      titulo: "1 - Pergunta",
-      opcoes: ["a) Opção", "b) Opção", "c) Opção", "d) Opção"],
-    },
-    {
-      id: 2,
-      tipo: "dissertativa",
-      titulo: "2 - Pergunta",
-    },
-    {
-      id: 3,
-      tipo: "alternativa",
-      titulo: "3 - Pergunta",
-      opcoes: ["a) Opção", "b) Opção", "c) Opção", "d) Opção"],
-    },
-  ];
-
+  const {user} = useAuth();
+  const { idFormulario } = useLocalSearchParams();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [perguntas, setPerguntas] = useState<any[]>([]);
   const [indice, setIndice] = useState(0);
-  const [respostas, setRespostas] = useState<{ [key: number]: string }>({});
+  const [respostas, setRespostas] = useState<{ [key: string]: string }>({});
+
+  // --------------------------------------------------
+  // Buscar perguntas do Firestore
+  // --------------------------------------------------
+  useEffect(() => {
+    console.log(idFormulario);
+    if (!idFormulario) return;
+
+    const carregarPerguntas = async () => {
+      try {
+        const q = query(
+          collection(db, "formularios_pergunta"),
+          where("formulario_pai", "==", idFormulario),
+          orderBy("ordem", "asc")
+        );
+
+        const snap = await getDocs(q);
+
+        const lista: any[] = snap.docs.map((doc) => {
+          const p = doc.data();
+
+          return {
+            id: doc.id,
+            titulo: p.pergunta,
+            tipo: p.tipo_pergunta, // "multipla" | "dissertativa"
+            opcoes: p.opcoes ? p.opcoes.split(";") : [],
+          };
+        });
+
+        setPerguntas(lista);
+      } catch (error) {
+        console.log("Erro ao carregar perguntas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarPerguntas();
+  }, [idFormulario]);
+
+  // --------------------------------------------------
+  // Load
+  // --------------------------------------------------
+  if (loading) {
+    return (
+      <View style={{ padding: 25 }}>
+        <Text>Carregando perguntas...</Text>
+      </View>
+    );
+  }
+
+  // Sem perguntas
+  if (!perguntas.length) {
+    return (
+      <View style={{ padding: 25 }}>
+        <Text>Nenhuma pergunta encontrada neste formulário.</Text>
+      </View>
+    );
+  }
 
   const perguntaAtual = perguntas[indice];
 
+  // Proteção extra (evita "Cannot read tipo of undefined")
+  if (!perguntaAtual) {
+    return (
+      <View style={{ padding: 25 }}>
+        <Text>Erro ao carregar pergunta atual.</Text>
+      </View>
+    );
+  }
+
+  // --------------------------------------------------
+  // Handlers
+  // --------------------------------------------------
   const handleChange = (valor: string) => {
     setRespostas({ ...respostas, [perguntaAtual.id]: valor });
   };
@@ -42,23 +106,40 @@ export default function ResponderFormulario() {
     if (indice > 0) setIndice(indice - 1);
   };
 
-  const finalizar = () => {
-    console.log("Respostas:", respostas);
+const finalizar = async () => {
+  try {
+    // Aqui você coloca o usuário logado (caso tenha auth)
+    // Por enquanto, vou usar um placeholder:
+    const idUsuario = user?.username ?? "usuario_nao_identificado"; 
+
+    await addDoc(collection(db, "usuario_formularios_respondidos"), {
+      id_formulario: idFormulario,
+      usuario: idUsuario,
+      data_resposta: serverTimestamp()
+    });
+
     alert("Formulário finalizado!");
-  };
+    console.log("RESPOSTAS SALVAS:", respostas);
+    router.push("./telas/user");
+
+  } catch (error) {
+    console.log("Erro ao salvar respostas:", error);
+    alert("Erro ao enviar respostas.");
+  }
+};
 
   const isFirst = indice === 0;
   const isLast = indice === perguntas.length - 1;
 
   return (
     <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={styles.container}>
-      <Text style={styles.titulo}>Nome do Formulário</Text>
+      <Text style={styles.titulo}>Respondendo Formulário</Text>
 
       <View style={styles.perguntaContainer}>
-        {perguntaAtual.tipo === "alternativa" ? (
+        {perguntaAtual.tipo === "multipla" ? (
           <PerguntaAlternativa
             pergunta={perguntaAtual.titulo}
-            opcoes={perguntaAtual.opcoes || []}
+            opcoes={perguntaAtual.opcoes}
             resposta={respostas[perguntaAtual.id] || null}
             onSelect={handleChange}
           />
@@ -71,49 +152,37 @@ export default function ResponderFormulario() {
         )}
       </View>
 
-      {/* FOOTER EM 3 COLUNAS */}
+      {/* FOOTER */}
       <View style={styles.footerRow}>
-        {/* esquerda */}
         <View style={[styles.col, styles.colLeft]}>
           {!isFirst && (
             <TouchableOpacity
               style={[styles.botao, styles.botaoAnterior]}
               onPress={perguntaAnterior}
-              activeOpacity={0.8}
             >
-              <Text style={styles.textoBotao} numberOfLines={1}>
-                ANTERIOR
-              </Text>
+              <Text style={styles.textoBotao}>ANTERIOR</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* centro */}
         <View style={[styles.col, styles.colCenter]}>
           {isLast && (
             <TouchableOpacity
               style={[styles.botao, styles.botaoFinalizar]}
               onPress={finalizar}
-              activeOpacity={0.9}
             >
-              <Text style={styles.textoBotaoFinalizar} numberOfLines={1}>
-                FINALIZAR
-              </Text>
+              <Text style={styles.textoBotaoFinalizar}>FINALIZAR</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* direita */}
         <View style={[styles.col, styles.colRight]}>
           {!isLast && (
             <TouchableOpacity
               style={[styles.botao, styles.botaoProximo]}
               onPress={proximaPergunta}
-              activeOpacity={0.8}
             >
-              <Text style={styles.textoBotao} numberOfLines={1}>
-                PRÓXIMO
-              </Text>
+              <Text style={styles.textoBotao}>PRÓXIMO</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -123,10 +192,7 @@ export default function ResponderFormulario() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
+  container: { flex: 1, padding: 20 },
   titulo: {
     fontSize: 22,
     fontWeight: "bold",
@@ -142,7 +208,6 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
 
-  /* footer 3-col */
   footerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -150,66 +215,38 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     height: 72,
   },
-  col: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  colLeft: {
-    alignItems: "flex-start",
-    paddingLeft: 4,
-  },
-  colCenter: {
-    alignItems: "center",
-  },
-  colRight: {
-    alignItems: "flex-end",
-    paddingRight: 4,
-  },
+
+  col: { flex: 1, justifyContent: "center" },
+  colLeft: { alignItems: "flex-start" },
+  colCenter: { alignItems: "center" },
+  colRight: { alignItems: "flex-end" },
 
   botao: {
     backgroundColor: "#4b7250",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 22,
-    alignItems: "center",
-    justifyContent: "center",
-
-    /* NÃO deixar o botão encolher e garantir tamanho mínimo */
-    flexShrink: 0,
     minWidth: 120,
   },
-
   textoBotao: {
     fontWeight: "600",
     color: "#fff",
     textAlign: "center",
-    flexWrap: "nowrap",
   },
-
-  /* estilos específicos */
+  botaoFinalizar: {
+    backgroundColor: "#2e8b57",
+    paddingHorizontal: 10,
+    minWidth: 130,
+  },
+  textoBotaoFinalizar: {
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+  },
   botaoAnterior: {
     backgroundColor: "#4b7250",
   },
   botaoProximo: {
     backgroundColor: "#4b7250",
-  },
-
-  botaoFinalizar: {
-    backgroundColor: "#2e8b57", // destaque
-    paddingHorizontal: 10,
-    minWidth: 130, // garantir espaço pro texto sem quebra
-    flexShrink: 0,
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
-  },
-  textoBotaoFinalizar: {
-    fontWeight: "700",
-    color: "#fff",
-    letterSpacing: 0.5,
-    textAlign: "center",
-    flexWrap: "nowrap",
   },
 });

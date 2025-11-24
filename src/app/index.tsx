@@ -3,8 +3,10 @@ import { useRouter } from 'expo-router';
 import { doc, getDoc,query, where,collection , getDocs} from "firebase/firestore";
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
+  const { setUser } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -39,9 +41,11 @@ export default function Login() {
 
       if (isAdmin) {
         Alert.alert("Sucesso", `Bem-vindo administrador ${username}!`);
+        setUser({ username, admin: true });
         router.push("./telas/admin/ativo");
       } else {
         Alert.alert("Sucesso", `Bem-vindo ${username}!`);
+        setUser({ username, admin: false });
         router.push("./telas/user");
       }
 
