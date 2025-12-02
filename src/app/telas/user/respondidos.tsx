@@ -1,11 +1,10 @@
+import { db } from "@/firebase/firebaseConfig";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
-import { db } from "@/firebase/firebaseConfig";
 
 import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
-import FormButton from "@/components/FormButton";
 import Formulario from "@/components/Formulario";
 import { useAuth } from "@/context/AuthContext";
 
@@ -79,12 +78,7 @@ export default function Respondidos() {
               <Date data={f.data} />
 
               <Formulario texto={f.texto}>
-                {f.ativo ? (
-                  <FormButton
-                    text="Editar"
-                    onPress={() => console.log("Editar resposta", f.id)}
-                  />
-                ) : undefined}
+       
               </Formulario>
             </View>
           ))

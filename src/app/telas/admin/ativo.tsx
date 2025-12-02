@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router"; // ✅ importação do hook de navegação
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
@@ -13,12 +13,11 @@ import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
 import FormButton from "@/components/FormButton";
 import Formulario from "@/components/Formulario";
-import ModalNovoFormulario from "@/components/ModalNovoFormulario";
+import ModalNovoFormulario, { FormData as FD } from "@/components/ModalNovoFormulario";
 import OptionsMenu from "@/components/OptionsMenu";
-import { styles } from "@/styles/IconButtonStyle";
-import {FormData as FD} from "@/components/ModalNovoFormulario";
-import { collection, getDocs , query, where} from "firebase/firestore";
 import { db } from "@/firebase/firebaseConfig";
+import { styles } from "@/styles/IconButtonStyle";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 
 export default function Criar() {
@@ -147,13 +146,10 @@ useEffect(() => {
                     />
                   }
                   options={[
-                    {
-                      title: "✏️ Editar",
-                      onPress: () => Alert.alert("Editar", f.texto),
-                    },
+                 
                     {
                       title: "   Encerrar",
-                      onPress: () => Alert.alert("Lançar", f.data),
+                      onPress: () => Alert.alert("Esse formulário foi encerrado"),
                     },
                     { 
                       title: "🗑️ Excluir",

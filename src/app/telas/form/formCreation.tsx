@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
+  Image,
+  Modal,
   Platform,
   Text,
   TextInput,
@@ -13,13 +15,20 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
+import { useRouter } from "expo-router";
+
 export default function FormularioTela() {
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [showSalvarModal, setShowSalvarModal] = useState(false);
+
+  const router = useRouter();
+
   const [menuAberto, setMenuAberto] = useState(false);
   const [perguntas, setPerguntas] = useState<any[]>([]);
   const [selecionada, setSelecionada] = useState<number | null>(null);
 
-  const {nome} = useLocalSearchParams();
-  // 👉 Adiciona pergunta nova
+  const { nome } = useLocalSearchParams();
+
   const adicionarPergunta = (tipo: string) => {
     const novaPergunta = {
       id: Date.now(),
@@ -32,68 +41,55 @@ export default function FormularioTela() {
     setMenuAberto(false);
   };
 
-  // 👉 Move pergunta pra cima ou pra baixo
   const moverPergunta = (index: number, direcao: "up" | "down") => {
     const novaLista = [...perguntas];
     const novoIndex =
-      direcao === "up"
-        ? Math.max(0, index - 1)
-        : Math.min(perguntas.length - 1, index + 1);
+      direcao === "up" ? Math.max(0, index - 1) : Math.min(perguntas.length - 1, index + 1);
+
     const temp = novaLista[index];
     novaLista[index] = novaLista[novoIndex];
     novaLista[novoIndex] = temp;
+
     setPerguntas(novaLista);
   };
 
-  // 👉 Atualiza texto da pergunta
   const atualizarPergunta = (id: number, novoTitulo: string) => {
-    setPerguntas(
-      perguntas.map((p) =>
-        p.id === id ? { ...p, titulo: novoTitulo } : p
-      )
-    );
+    setPerguntas(perguntas.map(p => p.id === id ? { ...p, titulo: novoTitulo } : p));
   };
 
-  // 👉 Atualiza texto de uma opção
   const atualizarOpcao = (id: number, index: number, valor: string) => {
     setPerguntas(
-      perguntas.map((p) =>
+      perguntas.map(p =>
         p.id === id
-          ? {
-              ...p,
-              opcoes: p.opcoes.map((op, i) => (i === index ? valor : op)),
-            }
+          ? { ...p, opcoes: p.opcoes.map((op: any, i: number) => (i === index ? valor : op)) }
           : p
       )
     );
   };
 
-  // 👉 Adiciona nova opção em pergunta alternativa
   const adicionarOpcao = (id: number) => {
     setPerguntas(
-      perguntas.map((p) =>
+      perguntas.map(p =>
         p.id === id ? { ...p, opcoes: [...p.opcoes, ""] } : p
       )
     );
   };
 
-  // 👉 Remove uma opção de uma pergunta alternativa
   const removerOpcao = (id: number, index: number) => {
     setPerguntas(
-      perguntas.map((p) =>
+      perguntas.map(p =>
         p.id === id
-          ? { ...p, opcoes: p.opcoes.filter((_, i) => i !== index) }
+          ? { ...p, opcoes: p.opcoes.filter((_: any, i: number) => i !== index) }
           : p
       )
     );
   };
 
-  // 👉 Remove uma pergunta
+  // ❗ AQUI ESTAVA O ERRO — AGORA FECHADO CORRETAMENTE
   const removerPergunta = (id: number) => {
-    setPerguntas(perguntas.filter((p) => p.id !== id));
-  };
+    setPerguntas(perguntas.filter(p => p.id !== id));
+  }; //  ← Faltava este fechamento
 
-  // 👉 Renderiza cada pergunta
   const renderPergunta = (pergunta: any, index: number) => {
     const estaSelecionada = selecionada === pergunta.id;
 
@@ -114,7 +110,7 @@ export default function FormularioTela() {
         >
           {estaSelecionada ? (
             <>
-              {/* Barra superior com setas e lixeira */}
+              {/* Barra superior */}
               <View
                 style={{
                   flexDirection: "row",
@@ -124,26 +120,15 @@ export default function FormularioTela() {
                 }}
               >
                 <View style={{ flexDirection: "row", gap: 10 }}>
-                  <TouchableOpacity
-                    onPress={() => moverPergunta(index, "up")}
-                    disabled={index === 0}
-                  >
-                    <Ionicons
-                      name="chevron-up-circle-outline"
-                      size={24}
-                      color="#333"
-                    />
+                  <TouchableOpacity onPress={() => moverPergunta(index, "up")} disabled={index === 0}>
+                    <Ionicons name="chevron-up-circle-outline" size={24} color="#333" />
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     onPress={() => moverPergunta(index, "down")}
                     disabled={index === perguntas.length - 1}
                   >
-                    <Ionicons
-                      name="chevron-down-circle-outline"
-                      size={24}
-                      color="#333"
-                    />
+                    <Ionicons name="chevron-down-circle-outline" size={24} color="#333" />
                   </TouchableOpacity>
                 </View>
 
@@ -152,28 +137,22 @@ export default function FormularioTela() {
                 </TouchableOpacity>
               </View>
 
-              {/* Campo de título */}
-              <View style={{
-                flex:1, 
-                flexDirection:'row'
-              }}>
-                <Text
-                  style={{
-                    alignSelf: 'center',
-                  }}
-                >{index+1+" - "}</Text>
+              {/* Título */}
+              <View style={{ flexDirection: "row" }}>
+                <Text style={{ alignSelf: "center" }}>{index + 1} - </Text>
+
                 <TextInput
-                  placeholder={`Pergunta`}
+                  placeholder="Pergunta"
                   value={pergunta.titulo}
-                  onChangeText={(t) => atualizarPergunta(pergunta.id, t)}
+                  onChangeText={t => atualizarPergunta(pergunta.id, t)}
                   style={{
-                    flex:1,
+                    flex: 1,
                     borderWidth: 1,
                     borderColor: "#ddd",
                     borderRadius: 6,
                     padding: 8,
                     marginBottom: 5,
-                    marginTop:5
+                    marginTop: 5,
                   }}
                 />
               </View>
@@ -181,40 +160,23 @@ export default function FormularioTela() {
               {/* Alternativas */}
               {pergunta.tipo === "alternativa" &&
                 pergunta.opcoes.map((op: string, i: number) => (
-                  <View
-                    key={`${pergunta.id}-opcao-${i}`} 
-                    style={{
-                      flex:1, 
-                      flexDirection:'row',
-                      alignItems:'center'
-                    }}
-                  >
-                    <Text
-                      style={{
-                        alignSelf: 'center',
-                      }}
-                    >{`${String.fromCharCode(97 + i)}) `}</Text>
+                  <View key={i} style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text>{`${String.fromCharCode(97 + i)}) `}</Text>
 
                     <TextInput
-                      placeholder={``}
                       value={op}
-                      onChangeText={(t) => atualizarOpcao(pergunta.id, i, t)}
+                      onChangeText={t => atualizarOpcao(pergunta.id, i, t)}
                       style={{
-                        flex:1,
+                        flex: 1,
                         borderWidth: 1,
                         borderColor: "#ddd",
                         borderRadius: 6,
                         padding: 8,
-                        marginBottom: 4,
-                        marginTop:4,
+                        marginVertical: 4,
                       }}
                     />
 
-                    {/* ❌ Botão X para remover opção */}
-                    <TouchableOpacity
-                      onPress={() => removerOpcao(pergunta.id, i)}
-                      style={{ marginLeft: 8 }}
-                    >
+                    <TouchableOpacity onPress={() => removerOpcao(pergunta.id, i)} style={{ marginLeft: 8 }}>
                       <Ionicons name="close-circle" size={22} color="red" />
                     </TouchableOpacity>
                   </View>
@@ -231,11 +193,7 @@ export default function FormularioTela() {
                     marginTop: 5,
                   }}
                 >
-                  <Text
-                    style={{ color: "#fff", fontWeight: "bold", fontSize: 14 }}
-                  >
-                    + Adicionar opção
-                  </Text>
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>+ Adicionar opção</Text>
                 </TouchableOpacity>
               )}
             </>
@@ -247,13 +205,14 @@ export default function FormularioTela() {
 
               {pergunta.tipo === "alternativa" ? (
                 pergunta.opcoes.map((op: string, i: number) => (
-                  <Text key={i} style={{ marginLeft: 10, marginBottom: 2 }}>
+                  <Text key={i} style={{ marginLeft: 10 }}>
                     {String.fromCharCode(97 + i)}) {op || "Opção"}
                   </Text>
                 ))
               ) : (
                 <TextInput
                   placeholder="Resposta..."
+                  editable={false}
                   style={{
                     borderBottomWidth: 1,
                     borderColor: "#ccc",
@@ -261,7 +220,6 @@ export default function FormularioTela() {
                     marginLeft: 10,
                     marginTop: 4,
                   }}
-                  editable={false}
                 />
               )}
             </>
@@ -271,7 +229,6 @@ export default function FormularioTela() {
     );
   };
 
-  // 👉 Retorno da tela
   return (
     <TouchableWithoutFeedback onPress={() => setSelecionada(null)}>
       <View
@@ -282,31 +239,148 @@ export default function FormularioTela() {
           paddingTop: 80,
         }}
       >
-        <Text
+
+        <View
           style={{
-            fontSize: 22,
-            fontWeight: "bold",
-            color: "#000",
-            marginBottom: 30,
+            height: 60,
+            backgroundColor: "#fff",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 15,
           }}
         >
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{
+              borderWidth: 1.5,
+              borderColor: "#ccc",
+              borderRadius: 50,
+              width: 40,
+              height: 40,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              source={require("@/../assets/icons/seta_esquerda.png")}
+              style={{ width: 20, height: 20 }}
+            />
+          </TouchableOpacity>
+
+          <OptionsMenu
+            visible={menuVisible}
+            onOpen={() => setMenuVisible(true)}
+            onClose={() => setMenuVisible(false)}
+            icon={
+              <TouchableOpacity
+                style={{
+                  borderWidth: 1.5,
+                  borderColor: "#ccc",
+                  borderRadius: 50,
+                  width: 40,
+                  height: 40,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Image
+                  source={require("@/../assets/icons/menu_tres_pontos.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
+            }
+            options={[
+              {
+                title: "💾 Salvar",
+                onPress: () => {
+                  setMenuVisible(false);
+                  setShowSalvarModal(true);
+                },
+              },
+            ]}
+          />
+        </View>
+
+
+        <Modal transparent visible={showSalvarModal} animationType="fade">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 12,
+                padding: 20,
+                width: "80%",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 20 }}>
+                Tem certeza que deseja salvar{"\n"}e lançar esse formulário?
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowSalvarModal(false);
+                    alert("Formulário salvo!");
+                  }}
+                  style={{
+                    backgroundColor: "#4CAF50",
+                    paddingVertical: 10,
+                    paddingHorizontal: 25,
+                    borderRadius: 6,
+                  }}
+                >
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>Confirmar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setShowSalvarModal(false)}
+                  style={{
+                    backgroundColor: "#ccc",
+                    paddingVertical: 10,
+                    paddingHorizontal: 25,
+                    borderRadius: 6,
+                  }}
+                >
+                  <Text style={{ color: "#333", fontWeight: "bold" }}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
+
+        <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 30 }}>
           {nome ?? "- Nome não identificado -"}
         </Text>
 
-        {/* Scroll que evita o teclado automaticamente */}
         <KeyboardAwareScrollView
           style={{ width: "100%" }}
           contentContainerStyle={{
             alignItems: "center",
             paddingBottom: 120,
           }}
-          enableOnAndroid={true}
+          enableOnAndroid
           extraScrollHeight={Platform.OS === "ios" ? 40 : 80}
           keyboardShouldPersistTaps="handled"
         >
           {perguntas.map((p, i) => renderPergunta(p, i))}
 
-          {/* Botão "Nova Pergunta" */}
           <OptionsMenu
             visible={menuAberto}
             onOpen={() => setMenuAberto(true)}
@@ -322,27 +396,16 @@ export default function FormularioTela() {
                   marginBottom: 30,
                 }}
                 text="＋ Nova Pergunta"
-                textStyle={{
-                  fontSize: 18,
-                  color: "#fff",
-                  fontWeight: "bold",
-                }}
                 onPress={() => setMenuAberto(true)}
               />
             }
             options={[
-              {
-                title: "📝 Dissertativa",
-                onPress: () => adicionarPergunta("dissertativa"),
-              },
-              {
-                title: "🔘 Alternativa",
-                onPress: () => adicionarPergunta("alternativa"),
-              },
+              { title: "📝 Dissertativa", onPress: () => adicionarPergunta("dissertativa") },
+              { title: "🔘 Alternativa", onPress: () => adicionarPergunta("alternativa") },
             ]}
           />
         </KeyboardAwareScrollView>
       </View>
     </TouchableWithoutFeedback>
   );
-}
+};

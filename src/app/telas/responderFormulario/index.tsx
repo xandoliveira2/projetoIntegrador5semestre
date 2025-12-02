@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, getDocs, orderBy, query, serverTimestamp, where } from "firebase/firestore";
 
 import { db } from "@/firebase/firebaseConfig";
 
 import PerguntaAlternativa from "@/components/PerguntaAlternativa";
 import PerguntaDissertativa from "@/components/PerguntaDissertativa";
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
-import {useAuth} from '@/context/AuthContext'
 
 export default function ResponderFormulario() {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const { idFormulario } = useLocalSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -106,88 +106,139 @@ export default function ResponderFormulario() {
     if (indice > 0) setIndice(indice - 1);
   };
 
-const finalizar = async () => {
-  try {
-    // Aqui você coloca o usuário logado (caso tenha auth)
-    // Por enquanto, vou usar um placeholder:
-    const idUsuario = user?.username ?? "usuario_nao_identificado"; 
+  const finalizar = async () => {
+    try {
+      // Aqui você coloca o usuário logado (caso tenha auth)
+      // Por enquanto, vou usar um placeholder:
+      const idUsuario = user?.username ?? "usuario_nao_identificado";
 
-    await addDoc(collection(db, "usuario_formularios_respondidos"), {
-      id_formulario: idFormulario,
-      usuario: idUsuario,
-      data_resposta: serverTimestamp()
-    });
+      await addDoc(collection(db, "usuario_formularios_respondidos"), {
+        id_formulario: idFormulario,
+        usuario: idUsuario,
+        data_resposta: serverTimestamp()
+      });
 
-    alert("Formulário finalizado!");
-    console.log("RESPOSTAS SALVAS:", respostas);
-    router.push("./telas/user");
+      alert("Formulário finalizado!");
+      console.log("RESPOSTAS SALVAS:", respostas);
+      router.push("./telas/user");
 
-  } catch (error) {
-    console.log("Erro ao salvar respostas:", error);
-    alert("Erro ao enviar respostas.");
-  }
-};
+    } catch (error) {
+      console.log("Erro ao salvar respostas:", error);
+      alert("Erro ao enviar respostas.");
+    }
+  };
 
   const isFirst = indice === 0;
   const isLast = indice === perguntas.length - 1;
 
   return (
-    <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={styles.container}>
-      <Text style={styles.titulo}>Respondendo Formulário</Text>
+    <View>
+      <View
+        style={{
+          height: 60, // 🔥 Aqui sim funciona
+          backgroundColor: "#fff",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 15,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{
+            borderWidth: 1.5,
+            borderColor: "#ccc",
+            borderRadius: 50,
+            width: 40,
+            height: 40,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Image
+            source={require("@/../assets/icons/seta_esquerda.png")}
+            style={{ width: 20, height: 20 }}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      <View style={styles.perguntaContainer}>
-        {perguntaAtual.tipo === "multipla" ? (
-          <PerguntaAlternativa
-            pergunta={perguntaAtual.titulo}
-            opcoes={perguntaAtual.opcoes}
-            resposta={respostas[perguntaAtual.id] || null}
-            onSelect={handleChange}
+        <TouchableOpacity
+          onPress={() => console.log("Menu aberto")}
+          style={{
+            borderWidth: 1.5,
+            borderColor: "#ccc",
+            borderRadius: 50,
+            width: 40,
+            height: 40,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Image
+            source={require("@/../assets/icons/menu_tres_pontos.png")}
+            style={{ width: 20, height: 20 }}
+            resizeMode="contain"
           />
-        ) : (
-          <PerguntaDissertativa
-            pergunta={perguntaAtual.titulo}
-            resposta={respostas[perguntaAtual.id] || ""}
-            onChange={handleChange}
-          />
-        )}
+        </TouchableOpacity>
       </View>
 
-      {/* FOOTER */}
-      <View style={styles.footerRow}>
-        <View style={[styles.col, styles.colLeft]}>
-          {!isFirst && (
-            <TouchableOpacity
-              style={[styles.botao, styles.botaoAnterior]}
-              onPress={perguntaAnterior}
-            >
-              <Text style={styles.textoBotao}>ANTERIOR</Text>
-            </TouchableOpacity>
+      <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={styles.container}>
+        <Text style={styles.titulo}>Respondendo Formulário</Text>
+
+        <View style={styles.perguntaContainer}>
+          {perguntaAtual.tipo === "multipla" ? (
+            <PerguntaAlternativa
+              pergunta={perguntaAtual.titulo}
+              opcoes={perguntaAtual.opcoes}
+              resposta={respostas[perguntaAtual.id] || null}
+              onSelect={handleChange}
+            />
+          ) : (
+            <PerguntaDissertativa
+              pergunta={perguntaAtual.titulo}
+              resposta={respostas[perguntaAtual.id] || ""}
+              onChange={handleChange}
+            />
           )}
         </View>
 
-        <View style={[styles.col, styles.colCenter]}>
-          {isLast && (
-            <TouchableOpacity
-              style={[styles.botao, styles.botaoFinalizar]}
-              onPress={finalizar}
-            >
-              <Text style={styles.textoBotaoFinalizar}>FINALIZAR</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* FOOTER */}
+        <View style={styles.footerRow}>
+          <View style={[styles.col, styles.colLeft]}>
+            {!isFirst && (
+              <TouchableOpacity
+                style={[styles.botao, styles.botaoAnterior]}
+                onPress={perguntaAnterior}
+              >
+                <Text style={styles.textoBotao}>ANTERIOR</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-        <View style={[styles.col, styles.colRight]}>
-          {!isLast && (
-            <TouchableOpacity
-              style={[styles.botao, styles.botaoProximo]}
-              onPress={proximaPergunta}
-            >
-              <Text style={styles.textoBotao}>PRÓXIMO</Text>
-            </TouchableOpacity>
-          )}
+          <View style={[styles.col, styles.colCenter]}>
+            {isLast && (
+              <TouchableOpacity
+                style={[styles.botao, styles.botaoFinalizar]}
+                onPress={finalizar}
+              >
+                <Text style={styles.textoBotaoFinalizar}>FINALIZAR</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={[styles.col, styles.colRight]}>
+            {!isLast && (
+              <TouchableOpacity
+                style={[styles.botao, styles.botaoProximo]}
+                onPress={proximaPergunta}
+              >
+                <Text style={styles.textoBotao}>PRÓXIMO</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </View>
   );
 }
 
