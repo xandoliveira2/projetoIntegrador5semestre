@@ -1,6 +1,7 @@
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -39,7 +40,11 @@ function CustomNavbar() {
         style={styles.exitButton}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={styles.exitIcon}>{"<"}</Text>
+        <Image
+          source={require("@/../assets/icons/logout.png")}
+          style={styles.exitIcon}
+          resizeMode="contain"
+        />
       </TouchableOpacity>
 
       {/* Modal de confirmação */}
@@ -105,9 +110,10 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
 
+  // 🔄 ÍCONE AGORA É IMAGEM, NÃO TEXTO
   exitIcon: {
-    fontSize: 22,
-    fontWeight: "bold",
+    width: 22,
+    height: 22,
   },
 
   /* Modal */

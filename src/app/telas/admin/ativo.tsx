@@ -30,61 +30,62 @@ export default function Criar() {
   const [showExcluirModal, setShowExcluirModal] = useState(false);
   const [formularioSelecionado, setFormularioSelecionado] = useState<string | null>(null);
 
+  // 🔹 Controle do modal de confirmação de encerramento (NOVO)
+  const [showEncerrarModal, setShowEncerrarModal] = useState(false);
+  const [formularioEncerrar, setFormularioEncerrar] = useState<string | null>(null);
+
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
-useEffect(() => {
-  const fetchFormularios = async () => {
-    try {
-      const q = query(
-        collection(db, "formularios"),
-        where("status", "==", true)   // 👈 FILTRO AQUI
-      );
 
-      const querySnapshot = await getDocs(q);
+  useEffect(() => {
+    const fetchFormularios = async () => {
+      try {
+        const q = query(
+          collection(db, "formularios"),
+          where("status", "==", true) // 👈 FILTRO AQUI
+        );
 
-      const lista: { id: string; texto: string; data: string }[] = [];
+        const querySnapshot = await getDocs(q);
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        const lista: { id: string; texto: string; data: string }[] = [];
 
-        const dataCriacao = data.data_criacao?.toDate
-          ? data.data_criacao.toDate().toLocaleDateString("pt-BR")
-          : "Sem data";
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
 
-        lista.push({
-          id: doc.id,
-          texto: data.nome || "Sem nome",
-          data: dataCriacao,
+          const dataCriacao = data.data_criacao?.toDate
+            ? data.data_criacao.toDate().toLocaleDateString("pt-BR")
+            : "Sem data";
+
+          lista.push({
+            id: doc.id,
+            texto: data.nome || "Sem nome",
+            data: dataCriacao,
+          });
         });
-      });
 
-      setFormularios(lista);
-    } catch (error) {
-      console.error("Erro ao carregar formulários:", error);
-    }
-  };
-
-  fetchFormularios();
-}, []);
-  // ✅ Navega para a tela do formulário ao continuar
-  const handleContinue = (formData : FD)  => {
-    handleCloseModal();
-    router.push(
-      {
-      pathname : "/telas/form/formCreation",
-      params : {
-        nome : formData.nome
-          }
+        setFormularios(lista);
+      } catch (error) {
+        console.error("Erro ao carregar formulários:", error);
       }
-    ); // 🚀 vai para a tela do formulário
-  };
-  const [formularios, setFormularios] = useState<
-  { id: string; texto: string; data: string }[]
->([]);
+    };
 
-  // const formularios = [
-  //   { id: 1, texto: "Pesquisa de satisfação 2023", data: "12/06/2023" },
-  // ];
+    fetchFormularios();
+  }, []);
+
+  // ✅ Navega para a tela do formulário ao continuar
+  const handleContinue = (formData: FD) => {
+    handleCloseModal();
+    router.push({
+      pathname: "/telas/form/formCreation",
+      params: {
+        nome: formData.nome,
+      },
+    });
+  };
+
+  const [formularios, setFormularios] = useState<
+    { id: string; texto: string; data: string }[]
+  >([]);
 
   const handleExcluir = (texto: string) => {
     setFormularioSelecionado(texto);
@@ -94,6 +95,18 @@ useEffect(() => {
   const confirmarExclusao = () => {
     setShowExcluirModal(false);
     Alert.alert("Excluído!", `O formulário "${formularioSelecionado}" foi excluído.`);
+  };
+
+  // 🔹 Função para abrir modal de ENCERRAR (NOVO)
+  const handleEncerrar = (texto: string) => {
+    setFormularioEncerrar(texto);
+    setShowEncerrarModal(true);
+  };
+
+  // 🔹 Função para confirmar encerramento (NOVO)
+  const confirmarEncerramento = () => {
+    setShowEncerrarModal(false);
+    Alert.alert("Encerrado!", `O formulário "${formularioEncerrar}" foi encerrado.`);
   };
 
   return (
@@ -146,12 +159,11 @@ useEffect(() => {
                     />
                   }
                   options={[
-                 
                     {
                       title: "   Encerrar",
-                      onPress: () => Alert.alert("Esse formulário foi encerrado"),
+                      onPress: () => handleEncerrar(f.texto), // 🔄 ALTERADO AQUI
                     },
-                    { 
+                    {
                       title: "🗑️ Excluir",
                       onPress: () => handleExcluir(f.texto),
                     },
@@ -167,10 +179,10 @@ useEffect(() => {
       <ModalNovoFormulario
         isVisible={isModalVisible}
         onClose={handleCloseModal}
-        onContinue={handleContinue} // ✅ navegação adicionada
+        onContinue={handleContinue}
       />
 
-      {/* Modal de confirmação de exclusão */ }
+      {/* Modal de confirmação de exclusão */}
       <Modal
         transparent
         visible={showExcluirModal}
@@ -240,6 +252,78 @@ useEffect(() => {
           </View>
         </View>
       </Modal>
+
+      {/* Modal de confirmação de ENCERRAR (NOVO - IDÊNTICO AO DE EXCLUIR) */}
+      <Modal
+        transparent
+        visible={showEncerrarModal}
+        animationType="fade"
+        onRequestClose={() => setShowEncerrarModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              padding: 20,
+              width: "80%",
+              alignItems: "center",
+              elevation: 5,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "600",
+                textAlign: "center",
+                marginBottom: 20,
+              }}
+            >
+              Tem certeza que deseja encerrar{"\n"}esse formulário?
+            </Text>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-around",
+                width: "100%",
+              }}
+            >
+              <TouchableOpacity
+                onPress={confirmarEncerramento}
+                style={{
+                  backgroundColor: "#ff4d4d",
+                  paddingVertical: 10,
+                  paddingHorizontal: 25,
+                  borderRadius: 6,
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "bold" }}>Encerrar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setShowEncerrarModal(false)}
+                style={{
+                  backgroundColor: "#ccc",
+                  paddingVertical: 10,
+                  paddingHorizontal: 25,
+                  borderRadius: 6,
+                }}
+              >
+                <Text style={{ color: "#333", fontWeight: "bold" }}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
