@@ -236,18 +236,20 @@ export default function FormularioTela() {
           flex: 1,
           backgroundColor: "#f0f6fc",
           alignItems: "center",
-          paddingTop: 80,
+          paddingTop: 0,
         }}
       >
 
         <View
           style={{
+            width:'100%',
             height: 60,
             backgroundColor: "#fff",
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
             paddingHorizontal: 15,
+            marginBottom: 30,
           }}
         >
           <TouchableOpacity
