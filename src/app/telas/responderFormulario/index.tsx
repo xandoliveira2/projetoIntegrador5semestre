@@ -132,16 +132,8 @@ export default function ResponderFormulario() {
   const isLast = indice === perguntas.length - 1;
 
   return (
-    <View>
+    <View style={{flex:1}}>
       <View
-        style={{
-          height: 60, // 🔥 Aqui sim funciona
-          backgroundColor: "#fff",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: 15,
-        }}
       >
         <TouchableOpacity
           onPress={() => router.back()}
@@ -153,6 +145,9 @@ export default function ResponderFormulario() {
             height: 40,
             justifyContent: "center",
             alignItems: "center",
+            marginTop:-45,
+            marginLeft:10,
+            zIndex:3
           }}
         >
           <Image
@@ -162,24 +157,7 @@ export default function ResponderFormulario() {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => console.log("Menu aberto")}
-          style={{
-            borderWidth: 1.5,
-            borderColor: "#ccc",
-            borderRadius: 50,
-            width: 40,
-            height: 40,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Image
-            source={require("@/../assets/icons/menu_tres_pontos.png")}
-            style={{ width: 20, height: 20 }}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+     
       </View>
 
       <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={styles.container}>
@@ -247,7 +225,7 @@ const styles = StyleSheet.create({
   titulo: {
     fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 25,
+    marginBottom: 50,
     textAlign: "center",
     color: "#2b4c2b",
   },
