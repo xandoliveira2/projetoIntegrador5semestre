@@ -17,8 +17,22 @@ import {
   View
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 export default function FormularioTela() {
+  useFocusEffect(
+  useCallback(() => {
+    console.log("✅ Tela ABERTA");
+
+    return () => {
+      console.log("❌ Tela FECHADA (onFormClosed)");
+      setSelecionada(null);
+      setMenuAberto(false);
+      setMenuVisible(false);
+      setShowSalvarModal(false);
+    };
+  }, [])
+);
   const [menuVisible, setMenuVisible] = useState(false);
   const [showSalvarModal, setShowSalvarModal] = useState(false);
 

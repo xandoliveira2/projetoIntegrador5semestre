@@ -18,8 +18,7 @@ import OptionsMenu from "@/components/OptionsMenu";
 import { db } from "@/firebase/firebaseConfig";
 import { styles } from "@/styles/IconButtonStyle";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
+
 
 export default function Criar() {
   const router = useRouter(); // ✅ instância do roteador
@@ -38,16 +37,12 @@ export default function Criar() {
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
 
-  useFocusEffect(
-  useCallback(() => {
-    // ✅ FECHA QUALQUER MENU ABERTO AO VOLTAR
-    setMenuAbertoId("");
-
+  useEffect(() => {
     const fetchFormularios = async () => {
       try {
         const q = query(
           collection(db, "formularios"),
-          where("status", "==", true)
+          where("status", "==", true) // 👈 FILTRO AQUI
         );
 
         const querySnapshot = await getDocs(q);
@@ -75,8 +70,7 @@ export default function Criar() {
     };
 
     fetchFormularios();
-  }, [])
-);
+  }, []);
 
   // ✅ Navega para a tela do formulário ao continuar
   const handleContinue = (formData: FD) => {
