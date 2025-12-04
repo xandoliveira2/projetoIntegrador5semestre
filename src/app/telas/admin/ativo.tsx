@@ -17,7 +17,15 @@ import ModalNovoFormulario, { FormData as FD } from "@/components/ModalNovoFormu
 import OptionsMenu from "@/components/OptionsMenu";
 import { db } from "@/firebase/firebaseConfig";
 import { styles } from "@/styles/IconButtonStyle";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where,
+  deleteDoc,
+  doc,
+  updateDoc
+} from "firebase/firestore";
 
 
 export default function Criar() {
@@ -28,11 +36,11 @@ export default function Criar() {
 
   // 🔹 Controle do modal de confirmação de exclusão
   const [showExcluirModal, setShowExcluirModal] = useState(false);
-  const [formularioSelecionado, setFormularioSelecionado] = useState<string | null>(null);
+  const [formularioSelecionado, setFormularioSelecionado] = useState<{ id: string; texto: string } | null>(null);
 
   // 🔹 Controle do modal de confirmação de encerramento (NOVO)
   const [showEncerrarModal, setShowEncerrarModal] = useState(false);
-  const [formularioEncerrar, setFormularioEncerrar] = useState<string | null>(null);
+  const [formularioEncerrar, setFormularioEncerrar] = useState<{ id: string; texto: string } | null>(null);
 
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
@@ -87,27 +95,59 @@ export default function Criar() {
     { id: string; texto: string; data: string }[]
   >([]);
 
-  const handleExcluir = (texto: string) => {
-    setFormularioSelecionado(texto);
-    setShowExcluirModal(true);
-  };
+const handleExcluir = (id: string, texto: string) => {
+  setMenuAbertoId(""); // ✅ FECHA O MENU PRIMEIRO
+  setFormularioSelecionado({ id, texto });
+  setShowExcluirModal(true);
+};
+const confirmarExclusao = async () => {
+  try {
+    if (!formularioSelecionado) return;
 
-  const confirmarExclusao = () => {
+    await deleteDoc(doc(db, "formularios", formularioSelecionado.id));
+
+    setFormularios(prev =>
+      prev.filter(f => f.id !== formularioSelecionado.id)
+    );
+
     setShowExcluirModal(false);
-    Alert.alert("Excluído!", `O formulário "${formularioSelecionado}" foi excluído.`);
-  };
+    setFormularioSelecionado(null);
+
+    Alert.alert("✅ Excluído!", `O formulário foi excluído com sucesso.`);
+  } catch (error) {
+    console.error("Erro ao excluir:", error);
+    Alert.alert("❌ Erro", "Erro ao excluir formulário.");
+  }
+};
 
   // 🔹 Função para abrir modal de ENCERRAR (NOVO)
-  const handleEncerrar = (texto: string) => {
-    setFormularioEncerrar(texto);
-    setShowEncerrarModal(true);
-  };
-
+const handleEncerrar = (id: string, texto: string) => {
+  setMenuAbertoId(""); // ✅ FECHA O MENU PRIMEIRO
+  setFormularioEncerrar({ id, texto });
+  setShowEncerrarModal(true);
+};
   // 🔹 Função para confirmar encerramento (NOVO)
-  const confirmarEncerramento = () => {
+const confirmarEncerramento = async () => {
+  try {
+    if (!formularioEncerrar) return;
+
+    await updateDoc(doc(db, "formularios", formularioEncerrar.id), {
+      status: false
+    });
+
+    setFormularios(prev =>
+      prev.filter(f => f.id !== formularioEncerrar.id)
+    );
+
     setShowEncerrarModal(false);
-    Alert.alert("Encerrado!", `O formulário "${formularioEncerrar}" foi encerrado.`);
-  };
+    setFormularioEncerrar(null);
+
+    Alert.alert("✅ Encerrado!", "Formulário encerrado com sucesso.");
+  } catch (error) {
+    console.error("Erro ao encerrar:", error);
+    Alert.alert("❌ Erro", "Erro ao encerrar formulário.");
+  }
+};
 
   return (
     <View style={{ flex: 1 }}>
@@ -147,7 +187,7 @@ export default function Criar() {
 
               <Formulario texto={f.texto}>
                 <OptionsMenu
-                  visible={menuAbertoId === f.id}
+                  visible={menuAbertoId === f.id && !!f.id}
                   onOpen={() => setMenuAbertoId(f.id)}
                   onClose={() => setMenuAbertoId("")}
                   icon={
@@ -161,11 +201,11 @@ export default function Criar() {
                   options={[
                     {
                       title: "   Encerrar",
-                      onPress: () => handleEncerrar(f.texto), // 🔄 ALTERADO AQUI
+                      onPress: () => handleEncerrar(f.id, f.texto),
                     },
                     {
                       title: "🗑️ Excluir",
-                      onPress: () => handleExcluir(f.texto),
+                      onPress: () => handleExcluir(f.id, f.texto),
                     },
                   ]}
                 />

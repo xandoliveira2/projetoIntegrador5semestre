@@ -1,14 +1,11 @@
 import React, { cloneElement } from "react";
 import {
-  Alert,
-  Dimensions,
-  Platform,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import Popover, { PopoverPlacement as Placement } from "react-native-popover-view";
 
 interface Option {
   title: string;
@@ -17,84 +14,67 @@ interface Option {
 
 interface OptionsMenuProps {
   options: Option[];
-  icon: React.ReactElement<{ onPress?: () => void }>;
-  visible?: boolean;
-  onOpen?: () => void;
-  onClose?: () => void;
+  icon: React.ReactElement;
+  visible: boolean;
+  onOpen: () => void;
+  onClose: () => void;
 }
 
-const OptionsMenu: React.FC<OptionsMenuProps> = ({
+export default function OptionsMenu({
   options,
   icon,
-  visible = false,
+  visible,
   onOpen,
   onClose,
-}) => {
-  const handleOpen = () => {
-    if (Platform.OS === "web") {
-      Alert.alert("Aviso", "Menu popover não é suportado no Web");
-      return;
-    }
-    onOpen?.();
-  };
-
-  const handleClose = () => onClose?.();
-
+}: OptionsMenuProps) {
   return (
-    <Popover
-      isVisible={visible}
-      onRequestClose={handleClose}
-      placement={Placement.BOTTOM}
-      from={() =>
-        cloneElement(icon, {
-          onPress: handleOpen,
-        })
-      }
-      // 🔹 Corrige bugs de posição em ScrollView
-      displayArea={{
-        x: 0,
-        y: 0,
-        width: Dimensions.get("window").width,
-        height: Dimensions.get("window").height,
-      }}
-      animationConfig={{ duration: 120 }}
-    >
-      <View style={styles.menuContent}>
-        {options.map((opt, index) => (
-          <React.Fragment key={index}>
-            <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => {
-                handleClose();
-                opt.onPress();
-              }}
-            >
-              <Text style={styles.menuText}>{opt.title}</Text>
-            </TouchableOpacity>
-            {index < options.length - 1 && <View style={styles.separator} />}
-          </React.Fragment>
-        ))}
-      </View>
-    </Popover>
+    <>
+      {/* Botão que abre o menu */}
+      {cloneElement(icon, {
+        onPress: onOpen,
+      })}
+
+      {/* Menu simples via Modal */}
+      <Modal transparent visible={visible} animationType="fade">
+        <TouchableOpacity style={styles.overlay} onPress={onClose}>
+          <View style={styles.menu}>
+            {options.map((opt, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.option}
+                onPress={() => {
+                  onClose();
+                  opt.onPress();
+                }}
+              >
+                <Text style={styles.text}>{opt.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  menuContent: {
-    padding: 10,
-    minWidth: 180,
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  menuOption: {
+  menu: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    width: 220,
     paddingVertical: 10,
   },
-  menuText: {
+  option: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  text: {
     fontSize: 16,
   },
-  separator: {
-    height: 1,
-    backgroundColor: "#ddd",
-    marginVertical: 6,
-  },
 });
-
-export default OptionsMenu;

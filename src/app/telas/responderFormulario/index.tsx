@@ -106,27 +106,36 @@ export default function ResponderFormulario() {
     if (indice > 0) setIndice(indice - 1);
   };
 
-  const finalizar = async () => {
-    try {
-      // Aqui você coloca o usuário logado (caso tenha auth)
-      // Por enquanto, vou usar um placeholder:
-      const idUsuario = user?.username ?? "usuario_nao_identificado";
+const finalizar = async () => {
+  try {
+    const idUsuario = user?.username ?? "usuario_teste";
 
-      await addDoc(collection(db, "usuario_formularios_respondidos"), {
-        id_formulario: idFormulario,
-        usuario: idUsuario,
-        data_resposta: serverTimestamp()
-      });
+    // 🔥 PARA CADA RESPOSTA, CRIA UM DOCUMENTO
+    const promises = Object.entries(respostas).map(
+      async ([idPergunta, valorResposta]) => {
+        return addDoc(collection(db, "usuario_formularios_respondidos"), {
+          id_formulario: String(idFormulario),
+          id_pergunta: idPergunta, // ✅ IMPORTANTE
+          usuario: idUsuario,
+          respostas: valorResposta,
+          data_resposta: serverTimestamp(),
+        });
+      }
+    );
 
-      alert("Formulário finalizado!");
-      console.log("RESPOSTAS SALVAS:", respostas);
-      router.push("./telas/user");
+    // ⏳ Aguarda todas salvarem
+    await Promise.all(promises);
 
-    } catch (error) {
-      console.log("Erro ao salvar respostas:", error);
-      alert("Erro ao enviar respostas.");
-    }
-  };
+    alert("✅ Respostas enviadas com sucesso!");
+    console.log("RESPOSTAS SALVAS:", respostas);
+
+    router.push("./telas/user/paraResponder.tsx");
+
+  } catch (error) {
+    console.log("Erro ao salvar respostas:", error);
+    alert("❌ Erro ao enviar respostas.");
+  }
+};
 
   const isFirst = indice === 0;
   const isLast = indice === perguntas.length - 1;
