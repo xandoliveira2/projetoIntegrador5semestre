@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Alert,
-  Modal,
   ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -16,20 +12,41 @@ import Formulario from "@/components/Formulario";
 import OptionsMenu from "@/components/OptionsMenu";
 import { db } from "@/firebase/firebaseConfig";
 import { styles } from "@/styles/IconButtonStyle";
-import { collection, getDocs, query, where } from "firebase/firestore";
+
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+} from "firebase/firestore";
+
+// ✅ IMPORTAÇÃO LEGACY (REMOVE O ERRO)
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
+
+type FormularioType = {
+  id: string;
+  texto: string;
+  data: string;
+};
+
+type PerguntaType = {
+  id: string;
+  texto: string;
+};
+
+type RespostaType = {
+  usuario: string;
+  id_pergunta: string;
+  respostas: string;
+};
 
 export default function Finalizado() {
   const [menuAbertoId, setMenuAbertoId] = useState<string>("");
-  const [formularios, setFormularios] = useState<
-    { id: string; texto: string; data: string }[]
-  >([]);
+  const [formularios, setFormularios] = useState<FormularioType[]>([]);
 
-  // Estados do modal de exportar
-  const [modalVisivel, setModalVisivel] = useState(false);
-  const [emailExport, setEmailExport] = useState("");
-  const [formSelecionado, setFormSelecionado] = useState<string | null>(null);
-
-  // 🔹 Buscar formulários finalizados no Firestore
+  // ✅ BUSCAR FORMULÁRIOS FINALIZADOS
   useEffect(() => {
     const fetchFormularios = async () => {
       try {
@@ -39,7 +56,7 @@ export default function Finalizado() {
         );
 
         const querySnapshot = await getDocs(q);
-        const lista: { id: string; texto: string; data: string }[] = [];
+        const lista: FormularioType[] = [];
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
@@ -57,35 +74,100 @@ export default function Finalizado() {
 
         setFormularios(lista);
       } catch (error) {
-        console.error("Erro ao carregar formulários finalizados:", error);
+        console.error("Erro ao carregar formulários:", error);
       }
     };
 
     fetchFormularios();
   }, []);
 
-  // 🔹 Abrir modal
-  const abrirModalExportar = (id: string) => {
-    setFormSelecionado(id);
-    setModalVisivel(true);
-  };
+  // ✅ EXPORTAR CSV 100% FUNCIONAL
+  const exportarCSV = async (idFormulario: string) => {
+    try {
+      // 1️⃣ Buscar perguntas
+      const perguntasQuery = query(
+        collection(db, "formularios_pergunta"),
+        where("formulario_pai", "==", idFormulario),
+        orderBy("ordem")
+      );
 
-  // 🔹 Confirmar exportação
-  const confirmarExportacao = () => {
-    if (!emailExport.includes("@")) {
-      Alert.alert("Email inválido", "Digite um email válido.");
-      return;
+      const perguntasSnapshot = await getDocs(perguntasQuery);
+      const perguntas: PerguntaType[] = [];
+
+      perguntasSnapshot.forEach((doc) => {
+        const data = doc.data();
+        perguntas.push({
+          id: doc.id,
+          texto: data.pergunta,
+        });
+      });
+
+      if (perguntas.length === 0) {
+        Alert.alert("Erro", "Este formulário não possui perguntas.");
+        return;
+      }
+
+      // 2️⃣ Buscar respostas
+      const respostasQuery = query(
+        collection(db, "usuario_formularios_respondidos"),
+        where("id_formulario", "==", idFormulario)
+      );
+
+      const respostasSnapshot = await getDocs(respostasQuery);
+      const respostas: RespostaType[] = [];
+
+      respostasSnapshot.forEach((doc) => {
+        const data = doc.data();
+        respostas.push({
+          usuario: data.usuario,
+          id_pergunta: data.id_pergunta,
+          respostas: data.respostas,
+        });
+      });
+
+      if (respostas.length === 0) {
+        Alert.alert("Aviso", "Nenhuma resposta encontrada.");
+        return;
+      }
+
+      // 3️⃣ Organizar por usuário
+      const usuarios: Record<string, Record<string, string>> = {};
+
+      respostas.forEach((res) => {
+        if (!usuarios[res.usuario]) {
+          usuarios[res.usuario] = {};
+        }
+        usuarios[res.usuario][res.id_pergunta] = res.respostas;
+      });
+
+      // 4️⃣ Montar CSV
+      let csv = "Usuário;" + perguntas.map((p) => p.texto).join(";") + "\n";
+
+      Object.entries(usuarios).forEach(([usuario, respostasUsuario]) => {
+        const linha = [
+          usuario,
+          ...perguntas.map(
+            (p) => respostasUsuario[p.id] || "Sem resposta"
+          ),
+        ].join(";");
+
+        csv += linha + "\n";
+      });
+
+      // 5️⃣ Criar arquivo
+      const fileUri =
+        FileSystem.documentDirectory +
+        `formulario_${idFormulario}.csv`;
+
+      await FileSystem.writeAsStringAsync(fileUri, csv);
+
+      // 6️⃣ Abrir compartilhamento
+      await Sharing.shareAsync(fileUri);
+
+    } catch (error) {
+      console.error("Erro ao exportar CSV:", error);
+      Alert.alert("Erro", "Falha ao exportar o CSV.");
     }
-
-    Alert.alert(
-      "Exportação concluída!",
-      `Formulário: ${formSelecionado}\nEnviado para: ${emailExport}`
-    );
-
-    // Fecha o modal
-    setModalVisivel(false);
-    setEmailExport("");
-    setFormSelecionado(null);
   };
 
   return (
@@ -97,6 +179,7 @@ export default function Finalizado() {
           formularios.map((f) => (
             <View key={f.id} style={{ marginTop: 15 }}>
               <Date data={f.data} />
+
               <Formulario texto={f.texto}>
                 <OptionsMenu
                   visible={menuAbertoId === f.id}
@@ -112,8 +195,8 @@ export default function Finalizado() {
                   }
                   options={[
                     {
-                      title: "📤 Exportar Dados",
-                      onPress: () => abrirModalExportar(f.id),
+                      title: "📤 Exportar Dados (CSV)",
+                      onPress: () => exportarCSV(f.id),
                     },
                   ]}
                 />
@@ -122,81 +205,6 @@ export default function Finalizado() {
           ))
         )}
       </ScrollView>
-
-      {/* 🔹 MODAL DE EXPORTAR DADOS */}
-      <Modal visible={modalVisivel} transparent animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 20,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "white",
-              padding: 20,
-              width: "100%",
-              borderRadius: 10,
-            }}
-          >
-            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 15 }}>
-              Exportar Dados
-            </Text>
-
-            <TextInput
-              placeholder="Digite o email"
-              style={{
-                borderWidth: 1,
-                borderColor: "#ccc",
-                borderRadius: 8,
-                padding: 10,
-                marginBottom: 20,
-              }}
-              value={emailExport}
-              onChangeText={setEmailExport}
-            />
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginTop: 10,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => setModalVisivel(false)}
-                style={{
-                  padding: 12,
-                  backgroundColor: "#ccc",
-                  borderRadius: 8,
-                  width: "45%",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ fontWeight: "bold" }}>Cancelar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={confirmarExportacao}
-                style={{
-                  padding: 12,
-                  backgroundColor: "#4CAF50",
-                  borderRadius: 8,
-                  width: "45%",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: "white", fontWeight: "bold" }}>
-                  Confirmar
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

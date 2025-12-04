@@ -129,7 +129,7 @@ const finalizar = async () => {
     alert("✅ Respostas enviadas com sucesso!");
     console.log("RESPOSTAS SALVAS:", respostas);
 
-    router.push("./telas/user/paraResponder.tsx");
+    router.push("/telas/user/paraResponder");
 
   } catch (error) {
     console.log("Erro ao salvar respostas:", error);
