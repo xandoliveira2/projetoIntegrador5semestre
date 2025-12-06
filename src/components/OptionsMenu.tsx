@@ -14,7 +14,7 @@ interface Option {
 
 interface OptionsMenuProps {
   options: Option[];
-  icon: React.ReactElement;
+  icon: React.ReactElement<{ onPress?: () => void }>;
   visible: boolean;
   onOpen: () => void;
   onClose: () => void;

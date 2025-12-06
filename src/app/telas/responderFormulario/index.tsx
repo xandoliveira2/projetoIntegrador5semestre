@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { addDoc, collection, getDocs, orderBy, query, serverTimestamp, where } from "firebase/firestore";
 
@@ -25,7 +25,6 @@ export default function ResponderFormulario() {
   // Buscar perguntas do Firestore
   // --------------------------------------------------
   useEffect(() => {
-    console.log(idFormulario);
     if (!idFormulario) return;
 
     const carregarPerguntas = async () => {
@@ -44,7 +43,7 @@ export default function ResponderFormulario() {
           return {
             id: doc.id,
             titulo: p.pergunta,
-            tipo: p.tipo_pergunta, // "multipla" | "dissertativa"
+            tipo: p.tipo_pergunta,
             opcoes: p.opcoes ? p.opcoes.split(";") : [],
           };
         });
@@ -60,9 +59,6 @@ export default function ResponderFormulario() {
     carregarPerguntas();
   }, [idFormulario]);
 
-  // --------------------------------------------------
-  // Load
-  // --------------------------------------------------
   if (loading) {
     return (
       <View style={{ padding: 25 }}>
@@ -71,7 +67,6 @@ export default function ResponderFormulario() {
     );
   }
 
-  // Sem perguntas
   if (!perguntas.length) {
     return (
       <View style={{ padding: 25 }}>
@@ -82,7 +77,6 @@ export default function ResponderFormulario() {
 
   const perguntaAtual = perguntas[indice];
 
-  // Proteção extra (evita "Cannot read tipo of undefined")
   if (!perguntaAtual) {
     return (
       <View style={{ padding: 25 }}>
@@ -106,67 +100,40 @@ export default function ResponderFormulario() {
     if (indice > 0) setIndice(indice - 1);
   };
 
-const finalizar = async () => {
-  try {
-    const idUsuario = user?.username ?? "usuario_teste";
+  const finalizar = async () => {
+    try {
+      const idUsuario = user?.username ?? "usuario_teste";
 
-    // 🔥 PARA CADA RESPOSTA, CRIA UM DOCUMENTO
-    const promises = Object.entries(respostas).map(
-      async ([idPergunta, valorResposta]) => {
-        return addDoc(collection(db, "usuario_formularios_respondidos"), {
-          id_formulario: String(idFormulario),
-          id_pergunta: idPergunta, // ✅ IMPORTANTE
-          usuario: idUsuario,
-          respostas: valorResposta,
-          data_resposta: serverTimestamp(),
-        });
-      }
-    );
+      const promises = Object.entries(respostas).map(
+        async ([idPergunta, valorResposta]) => {
+          return addDoc(collection(db, "usuario_formularios_respondidos"), {
+            id_formulario: String(idFormulario),
+            id_pergunta: idPergunta,
+            usuario: idUsuario,
+            respostas: valorResposta,
+            data_resposta: serverTimestamp(),
+          });
+        }
+      );
 
-    // ⏳ Aguarda todas salvarem
-    await Promise.all(promises);
+      await Promise.all(promises);
 
-    alert("✅ Respostas enviadas com sucesso!");
-    console.log("RESPOSTAS SALVAS:", respostas);
+      alert("✅ Respostas enviadas com sucesso!");
+      router.push("/telas/user/paraResponder");
 
-    router.push("/telas/user/paraResponder");
-
-  } catch (error) {
-    console.log("Erro ao salvar respostas:", error);
-    alert("❌ Erro ao enviar respostas.");
-  }
-};
+    } catch (error) {
+      console.log("Erro ao salvar respostas:", error);
+      alert("❌ Erro ao enviar respostas.");
+    }
+  };
 
   const isFirst = indice === 0;
   const isLast = indice === perguntas.length - 1;
 
   return (
-    <View style={{flex:1}}>
-      <View
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{
-            borderWidth: 1.5,
-            borderColor: "#ccc",
-            borderRadius: 50,
-            width: 40,
-            height: 40,
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop:-45,
-            marginLeft:10,
-            zIndex:3
-          }}
-        >
-          <Image
-            source={require("@/../assets/icons/seta_esquerda.png")}
-            style={{ width: 20, height: 20 }}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+    <View style={{ flex: 1 }}>
+      <View>
 
-     
       </View>
 
       <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={styles.container}>
@@ -191,6 +158,8 @@ const finalizar = async () => {
 
         {/* FOOTER */}
         <View style={styles.footerRow}>
+
+          {/* COLUNA ESQUERDA */}
           <View style={[styles.col, styles.colLeft]}>
             {!isFirst && (
               <TouchableOpacity
@@ -202,19 +171,19 @@ const finalizar = async () => {
             )}
           </View>
 
-          <View style={[styles.col, styles.colCenter]}>
-            {isLast && (
+          {/* COLUNA DO MEIO — só aparece se NÃO for a última pergunta */}
+          {!isLast && <View style={[styles.col, styles.colCenter]} />}
+
+          {/* COLUNA DIREITA */}
+          <View style={[styles.col, styles.colRight]}>
+            {isLast ? (
               <TouchableOpacity
                 style={[styles.botao, styles.botaoFinalizar]}
                 onPress={finalizar}
               >
                 <Text style={styles.textoBotaoFinalizar}>FINALIZAR</Text>
               </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={[styles.col, styles.colRight]}>
-            {!isLast && (
+            ) : (
               <TouchableOpacity
                 style={[styles.botao, styles.botaoProximo]}
                 onPress={proximaPergunta}
@@ -223,7 +192,9 @@ const finalizar = async () => {
               </TouchableOpacity>
             )}
           </View>
+
         </View>
+
       </LinearGradient>
     </View>
   );
@@ -244,6 +215,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 15,
     elevation: 1,
+
   },
 
   footerRow: {
@@ -264,23 +236,29 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 22,
-    minWidth: 120,
+    minWidth: 150,
   },
   textoBotao: {
     fontWeight: "600",
     color: "#fff",
     textAlign: "center",
+    fontSize: 20,
   },
+
+  /* ALTERADO: BOTÃO FINALIZAR AGORA É AZUL */
   botaoFinalizar: {
-    backgroundColor: "#2e8b57",
+    backgroundColor: "#007bff",
     paddingHorizontal: 10,
-    minWidth: 130,
+    minWidth: 150,
   },
   textoBotaoFinalizar: {
     fontWeight: "700",
     color: "#fff",
     textAlign: "center",
+    fontSize: 20,
+
   },
+
   botaoAnterior: {
     backgroundColor: "#4b7250",
   },

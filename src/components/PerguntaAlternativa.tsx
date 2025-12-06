@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   },
   pergunta: {
     fontWeight: "bold",
-    fontSize: 18,
+    fontSize: 23,
     marginBottom: 15,
   },
   opcao: {
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   textoOpcao: {
-    fontSize: 16,
+    fontSize: 18,
   },
   textoSelecionado: {
     fontWeight: "bold",

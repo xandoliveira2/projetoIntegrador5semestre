@@ -16,7 +16,13 @@ export default function Layout() {
       screenOptions={{
         header: () => <CustomNavbar />,
       }}
-    />
+    >
+      {/* 🔥 AQUI ESTÁ O QUE VOCÊ QUERIA ADICIONAR */}
+      <Stack.Screen
+        name="responderFormulario"
+        options={{ headerShown: false }}
+      />
+    </Stack>
   );
 }
 
@@ -26,16 +32,13 @@ function CustomNavbar() {
 
   function confirmLogout() {
     setModalVisible(false);
-
-    // Aqui você pode remover token, limpar AsyncStorage, etc.
-    router.replace("/"); // Vai para a tela de login
+    router.replace("/"); // voltar pra login
   }
 
   return (
     <View style={styles.navbar}>
       <Text style={styles.title}> </Text>
 
-      {/* Botão circular de logout */}
       <TouchableOpacity
         style={styles.exitButton}
         onPress={() => setModalVisible(true)}
@@ -47,7 +50,6 @@ function CustomNavbar() {
         />
       </TouchableOpacity>
 
-      {/* Modal de confirmação */}
       <Modal animationType="fade" transparent visible={modalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
@@ -101,8 +103,6 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
-
-    // Elevação
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -110,13 +110,11 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
 
-  // 🔄 ÍCONE AGORA É IMAGEM, NÃO TEXTO
   exitIcon: {
     width: 22,
     height: 22,
   },
 
-  /* Modal */
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
