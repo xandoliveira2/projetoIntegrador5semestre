@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router"; // ✅ importação do hook de navegação
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -17,6 +17,7 @@ import ModalNovoFormulario, { FormData as FD } from "@/components/ModalNovoFormu
 import OptionsMenu from "@/components/OptionsMenu";
 import { db } from "@/firebase/firebaseConfig";
 import { styles } from "@/styles/IconButtonStyle";
+
 import {
   collection,
   deleteDoc,
@@ -24,37 +25,37 @@ import {
   getDocs,
   query,
   updateDoc,
-  where
+  where,
 } from "firebase/firestore";
 
-
 export default function Criar() {
-  const router = useRouter(); // ✅ instância do roteador
+  const router = useRouter();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [menuAbertoId, setMenuAbertoId] = useState<string>("");
 
-  // 🔹 Controle do modal de confirmação de exclusão
   const [showExcluirModal, setShowExcluirModal] = useState(false);
   const [formularioSelecionado, setFormularioSelecionado] = useState<{ id: string; texto: string } | null>(null);
 
-  // 🔹 Controle do modal de confirmação de encerramento (NOVO)
   const [showEncerrarModal, setShowEncerrarModal] = useState(false);
   const [formularioEncerrar, setFormularioEncerrar] = useState<{ id: string; texto: string } | null>(null);
 
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
 
+  const [formularios, setFormularios] = useState<
+    { id: string; texto: string; data: string }[]
+  >([]);
+
   useEffect(() => {
     const fetchFormularios = async () => {
       try {
         const q = query(
           collection(db, "formularios"),
-          where("status", "==", true) // 👈 FILTRO AQUI
+          where("status", "==", true)
         );
 
         const querySnapshot = await getDocs(q);
-
         const lista: { id: string; texto: string; data: string }[] = [];
 
         querySnapshot.forEach((doc) => {
@@ -80,7 +81,7 @@ export default function Criar() {
     fetchFormularios();
   }, []);
 
-  // ✅ Navega para a tela do formulário ao continuar
+  // ✅ CONTINUAR (CRIAR)
   const handleContinue = (formData: FD) => {
     handleCloseModal();
     router.push({
@@ -91,67 +92,74 @@ export default function Criar() {
     });
   };
 
-  const [formularios, setFormularios] = useState<
-    { id: string; texto: string; data: string }[]
-  >([]);
-
-const handleExcluir = (id: string, texto: string) => {
-  setMenuAbertoId(""); // ✅ FECHA O MENU PRIMEIRO
-  setFormularioSelecionado({ id, texto });
-  setShowExcluirModal(true);
-};
-const confirmarExclusao = async () => {
-  try {
-    if (!formularioSelecionado) return;
-
-    await deleteDoc(doc(db, "formularios", formularioSelecionado.id));
-
-    setFormularios(prev =>
-      prev.filter(f => f.id !== formularioSelecionado.id)
-    );
-
-    setShowExcluirModal(false);
-    setFormularioSelecionado(null);
-
-    Alert.alert("✅ Excluído!", `O formulário foi excluído com sucesso.`);
-  } catch (error) {
-    console.error("Erro ao excluir:", error);
-    Alert.alert("❌ Erro", "Erro ao excluir formulário.");
-  }
-};
-
-  // 🔹 Função para abrir modal de ENCERRAR (NOVO)
-const handleEncerrar = (id: string, texto: string) => {
-  setMenuAbertoId(""); // ✅ FECHA O MENU PRIMEIRO
-  setFormularioEncerrar({ id, texto });
-  setShowEncerrarModal(true);
-};
-  // 🔹 Função para confirmar encerramento (NOVO)
-const confirmarEncerramento = async () => {
-  try {
-    if (!formularioEncerrar) return;
-
-    await updateDoc(doc(db, "formularios", formularioEncerrar.id), {
-      status: false
+  // ✅ EDITAR FORMULÁRIO (NOVO)
+  const handleEditar = (id: string, texto: string) => {
+    setMenuAbertoId("");
+    router.push({
+      pathname: "/telas/form/formCreation",
+      params: {
+        id,
+        nome: texto,
+      },
     });
+  };
 
-    setFormularios(prev =>
-      prev.filter(f => f.id !== formularioEncerrar.id)
-    );
+  const handleExcluir = (id: string, texto: string) => {
+    setMenuAbertoId("");
+    setFormularioSelecionado({ id, texto });
+    setShowExcluirModal(true);
+  };
 
-    setShowEncerrarModal(false);
-    setFormularioEncerrar(null);
+  const confirmarExclusao = async () => {
+    try {
+      if (!formularioSelecionado) return;
 
-    Alert.alert("✅ Encerrado!", "Formulário encerrado com sucesso.");
-  } catch (error) {
-    console.error("Erro ao encerrar:", error);
-    Alert.alert("❌ Erro", "Erro ao encerrar formulário.");
-  }
-};
+      await deleteDoc(doc(db, "formularios", formularioSelecionado.id));
+
+      setFormularios((prev) =>
+        prev.filter((f) => f.id !== formularioSelecionado.id)
+      );
+
+      setShowExcluirModal(false);
+      setFormularioSelecionado(null);
+
+      Alert.alert("✅ Excluído!", "O formulário foi excluído com sucesso.");
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      Alert.alert("❌ Erro", "Erro ao excluir formulário.");
+    }
+  };
+
+  const handleEncerrar = (id: string, texto: string) => {
+    setMenuAbertoId("");
+    setFormularioEncerrar({ id, texto });
+    setShowEncerrarModal(true);
+  };
+
+  const confirmarEncerramento = async () => {
+    try {
+      if (!formularioEncerrar) return;
+
+      await updateDoc(doc(db, "formularios", formularioEncerrar.id), {
+        status: false,
+      });
+
+      setFormularios((prev) =>
+        prev.filter((f) => f.id !== formularioEncerrar.id)
+      );
+
+      setShowEncerrarModal(false);
+      setFormularioEncerrar(null);
+
+      Alert.alert("✅ Encerrado!", "Formulário encerrado com sucesso.");
+    } catch (error) {
+      console.error("Erro ao encerrar:", error);
+      Alert.alert("❌ Erro", "Erro ao encerrar formulário.");
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Botão principal */}
       <FormButton
         onPress={handleOpenModal}
         text="Novo Formulário"
@@ -176,10 +184,10 @@ const confirmarEncerramento = async () => {
         Formulários
       </Text>
 
-      {/* Lista de formulários */}
-      <ScrollView style={{ padding: 20 }}
-              contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
->
+      <ScrollView
+        style={{ padding: 20 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário ativo" />
         ) : (
@@ -202,7 +210,11 @@ const confirmarEncerramento = async () => {
                   }
                   options={[
                     {
-                      title: "   Encerrar",
+                      title: "✏️ Editar", // ✅ NOVO BOTÃO
+                      onPress: () => handleEditar(f.id, f.texto),
+                    },
+                    {
+                      title: "✅ Encerrar",
                       onPress: () => handleEncerrar(f.id, f.texto),
                     },
                     {
@@ -217,155 +229,53 @@ const confirmarEncerramento = async () => {
         )}
       </ScrollView>
 
-      {/* Modal de novo formulário */}
       <ModalNovoFormulario
         isVisible={isModalVisible}
         onClose={handleCloseModal}
         onContinue={handleContinue}
       />
 
-      {/* Modal de confirmação de exclusão */}
-      <Modal
-        transparent
-        visible={showExcluirModal}
-        animationType="fade"
-        onRequestClose={() => setShowExcluirModal(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: 10,
-              padding: 20,
-              width: "80%",
-              alignItems: "center",
-              elevation: 5,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 17,
-                fontWeight: "600",
-                textAlign: "center",
-                marginBottom: 20,
-              }}
-            >
-              Tem certeza que deseja excluir{"\n"}esse formulário?
+      {/* ✅ MODAL EXCLUIR */}
+      <Modal transparent visible={showExcluirModal} animationType="fade">
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
+          <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20, width: "80%", alignItems: "center" }}>
+            <Text style={{ fontSize: 17, fontWeight: "600", textAlign: "center", marginBottom: 20 }}>
+              Tem certeza que deseja excluir esse formulário?
             </Text>
 
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-around",
-                width: "100%",
-              }}
-            >
-              <TouchableOpacity
-                onPress={confirmarExclusao}
-                style={{
-                  backgroundColor: "#ff4d4d",
-                  paddingVertical: 10,
-                  paddingHorizontal: 25,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>Excluir</Text>
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity onPress={confirmarExclusao} style={{ backgroundColor: "#ff4d4d", padding: 10, borderRadius: 6 }}>
+                <Text style={{ color: "#fff" }}>Excluir</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => setShowExcluirModal(false)}
-                style={{
-                  backgroundColor: "#ccc",
-                  paddingVertical: 10,
-                  paddingHorizontal: 25,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: "#333", fontWeight: "bold" }}>Cancelar</Text>
+              <TouchableOpacity onPress={() => setShowExcluirModal(false)} style={{ marginLeft: 15, backgroundColor: "#ccc", padding: 10, borderRadius: 6 }}>
+                <Text>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* Modal de confirmação de ENCERRAR (NOVO - IDÊNTICO AO DE EXCLUIR) */}
-      <Modal
-        transparent
-        visible={showEncerrarModal}
-        animationType="fade"
-        onRequestClose={() => setShowEncerrarModal(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: 10,
-              padding: 20,
-              width: "80%",
-              alignItems: "center",
-              elevation: 5,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 17,
-                fontWeight: "600",
-                textAlign: "center",
-                marginBottom: 20,
-              }}
-            >
-              Tem certeza que deseja encerrar{"\n"}esse formulário?
+      {/* ✅ MODAL ENCERRAR */}
+      <Modal transparent visible={showEncerrarModal} animationType="fade">
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
+          <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20, width: "80%", alignItems: "center" }}>
+            <Text style={{ fontSize: 17, fontWeight: "600", textAlign: "center", marginBottom: 20 }}>
+              Tem certeza que deseja encerrar esse formulário?
             </Text>
 
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-around",
-                width: "100%",
-              }}
-            >
-              <TouchableOpacity
-                onPress={confirmarEncerramento}
-                style={{
-                  backgroundColor: "#ff4d4d",
-                  paddingVertical: 10,
-                  paddingHorizontal: 25,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>Encerrar</Text>
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity onPress={confirmarEncerramento} style={{ backgroundColor: "#ff4d4d", padding: 10, borderRadius: 6 }}>
+                <Text style={{ color: "#fff" }}>Encerrar</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => setShowEncerrarModal(false)}
-                style={{
-                  backgroundColor: "#ccc",
-                  paddingVertical: 10,
-                  paddingHorizontal: 25,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: "#333", fontWeight: "bold" }}>Cancelar</Text>
+              <TouchableOpacity onPress={() => setShowEncerrarModal(false)} style={{ marginLeft: 15, backgroundColor: "#ccc", padding: 10, borderRadius: 6 }}>
+                <Text>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }

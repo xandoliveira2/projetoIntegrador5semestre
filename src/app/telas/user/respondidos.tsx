@@ -14,39 +14,48 @@ export default function Respondidos() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.username) return;
 
     const carregarRespondidos = async () => {
       try {
+        setLoading(true);
+
         const q = query(
           collection(db, "usuario_formularios_respondidos"),
           where("usuario", "==", user.username)
         );
 
-        console.log(user.username);
-
         const snapshot = await getDocs(q);
 
-        const listaTemp: any[] = [];
+        // ✅ 1. AGRUPAR POR FORMULÁRIO SEM DUPLICAR
+        const mapa = new Map<string, any>();
 
         for (const resposta of snapshot.docs) {
           const dados = resposta.data();
-          const formRef = doc(db, "formularios", dados.id_formulario);
+          const idFormulario = dados.id_formulario;
+
+          // ✅ Se já existe no mapa, IGNORA
+          if (mapa.has(idFormulario)) continue;
+
+          const formRef = doc(db, "formularios", idFormulario);
           const formSnap = await getDoc(formRef);
 
           if (formSnap.exists()) {
             const formData = formSnap.data();
 
-            listaTemp.push({
-              id: dados.id_formulario,
+            mapa.set(idFormulario, {
+              id: idFormulario,
               texto: formData.nome,
-              data: dados.data_resposta.toDate().toLocaleDateString("pt-BR"),
+              data: dados.data_resposta?.toDate
+                ? dados.data_resposta.toDate().toLocaleDateString("pt-BR")
+                : "Sem data",
               ativo: formData.status,
             });
           }
         }
 
-        setFormularios(listaTemp);
+        // ✅ 2. CONVERTE O MAPA EM ARRAY
+        setFormularios(Array.from(mapa.values()));
       } catch (err) {
         console.log("Erro ao carregar respondidos:", err);
       } finally {
@@ -55,7 +64,7 @@ export default function Respondidos() {
     };
 
     carregarRespondidos();
-  }, [user]);
+  }, [user?.username]);
 
   if (loading) {
     return (
@@ -66,18 +75,18 @@ export default function Respondidos() {
   }
 
   return (
-    <View>
-      <ScrollView 
+    <View style={{ flex: 1 }}>
+      <ScrollView
         style={{ padding: 20 }}
-        contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Você ainda não respondeu nenhum formulário" />
         ) : (
-          formularios.map((f, index) => (
-            <View key={`${f.id}-${index}`} style={{ marginTop: 15 }}>
+          formularios.map((f) => (
+            <View key={f.id} style={{ marginTop: 15 }}>
               <Date data={f.data} />
-              <Formulario texto={f.texto}></Formulario>
+              <Formulario texto={f.texto} />
             </View>
           ))
         )}

@@ -1,21 +1,30 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { addDoc, collection, getDocs, orderBy, query, serverTimestamp, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+  where,
+} from "firebase/firestore";
 
 import { db } from "@/firebase/firebaseConfig";
 
 import PerguntaAlternativa from "@/components/PerguntaAlternativa";
 import PerguntaDissertativa from "@/components/PerguntaDissertativa";
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'expo-router';
+import { useAuth } from "@/context/AuthContext";
 
 export default function ResponderFormulario() {
   const { user } = useAuth();
   const { idFormulario } = useLocalSearchParams();
   const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [perguntas, setPerguntas] = useState<any[]>([]);
   const [indice, setIndice] = useState(0);
@@ -61,33 +70,26 @@ export default function ResponderFormulario() {
 
   if (loading) {
     return (
-      <View style={{ padding: 25 }}>
-        <Text>Carregando perguntas...</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ padding: 25 }}>
+          <Text>Carregando perguntas...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (!perguntas.length) {
     return (
-      <View style={{ padding: 25 }}>
-        <Text>Nenhuma pergunta encontrada neste formulário.</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ padding: 25 }}>
+          <Text>Nenhuma pergunta encontrada neste formulário.</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   const perguntaAtual = perguntas[indice];
 
-  if (!perguntaAtual) {
-    return (
-      <View style={{ padding: 25 }}>
-        <Text>Erro ao carregar pergunta atual.</Text>
-      </View>
-    );
-  }
-
-  // --------------------------------------------------
-  // Handlers
-  // --------------------------------------------------
   const handleChange = (valor: string) => {
     setRespostas({ ...respostas, [perguntaAtual.id]: valor });
   };
@@ -120,7 +122,6 @@ export default function ResponderFormulario() {
 
       alert("✅ Respostas enviadas com sucesso!");
       router.push("/telas/user/paraResponder");
-
     } catch (error) {
       console.log("Erro ao salvar respostas:", error);
       alert("❌ Erro ao enviar respostas.");
@@ -131,99 +132,99 @@ export default function ResponderFormulario() {
   const isLast = indice === perguntas.length - 1;
 
   return (
-    <View style={{ flex: 1 }}>
-      <View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.titulo}>Respondendo Formulário</Text>
 
-      </View>
-
-      <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={styles.container}>
-        <Text style={styles.titulo}>Respondendo Formulário</Text>
-
-        <View style={styles.perguntaContainer}>
-          {perguntaAtual.tipo === "multipla" ? (
-            <PerguntaAlternativa
-              pergunta={perguntaAtual.titulo}
-              opcoes={perguntaAtual.opcoes}
-              resposta={respostas[perguntaAtual.id] || null}
-              onSelect={handleChange}
-            />
-          ) : (
-            <PerguntaDissertativa
-              pergunta={perguntaAtual.titulo}
-              resposta={respostas[perguntaAtual.id] || ""}
-              onChange={handleChange}
-            />
-          )}
-        </View>
-
-        {/* FOOTER */}
-        <View style={styles.footerRow}>
-
-          {/* COLUNA ESQUERDA */}
-          <View style={[styles.col, styles.colLeft]}>
-            {!isFirst && (
-              <TouchableOpacity
-                style={[styles.botao, styles.botaoAnterior]}
-                onPress={perguntaAnterior}
-              >
-                <Text style={styles.textoBotao}>ANTERIOR</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* COLUNA DO MEIO — só aparece se NÃO for a última pergunta */}
-          {!isLast && <View style={[styles.col, styles.colCenter]} />}
-
-          {/* COLUNA DIREITA */}
-          <View style={[styles.col, styles.colRight]}>
-            {isLast ? (
-              <TouchableOpacity
-                style={[styles.botao, styles.botaoFinalizar]}
-                onPress={finalizar}
-              >
-                <Text style={styles.textoBotaoFinalizar}>FINALIZAR</Text>
-              </TouchableOpacity>
+          <View style={styles.perguntaContainer}>
+            {perguntaAtual.tipo === "multipla" ? (
+              <PerguntaAlternativa
+                pergunta={perguntaAtual.titulo}
+                opcoes={perguntaAtual.opcoes}
+                resposta={respostas[perguntaAtual.id] || null}
+                onSelect={handleChange}
+              />
             ) : (
-              <TouchableOpacity
-                style={[styles.botao, styles.botaoProximo]}
-                onPress={proximaPergunta}
-              >
-                <Text style={styles.textoBotao}>PRÓXIMO</Text>
-              </TouchableOpacity>
+              <PerguntaDissertativa
+                pergunta={perguntaAtual.titulo}
+                resposta={respostas[perguntaAtual.id] || ""}
+                onChange={handleChange}
+              />
             )}
           </View>
 
-        </View>
+          {/* ✅ FOOTER NORMAL (SEM POSITION ABSOLUTE) */}
+          <View style={styles.footerRow}>
+            <View style={[styles.col, styles.colLeft]}>
+              {!isFirst && (
+                <TouchableOpacity
+                  style={[styles.botao, styles.botaoAnterior]}
+                  onPress={perguntaAnterior}
+                >
+                  <Text style={styles.textoBotao}>ANTERIOR</Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
+            {!isLast && <View style={[styles.col, styles.colCenter]} />}
+
+            <View style={[styles.col, styles.colRight]}>
+              {isLast ? (
+                <TouchableOpacity
+                  style={[styles.botao, styles.botaoFinalizar]}
+                  onPress={finalizar}
+                >
+                  <Text style={styles.textoBotaoFinalizar}>FINALIZAR</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.botao, styles.botaoProximo]}
+                  onPress={proximaPergunta}
+                >
+                  <Text style={styles.textoBotao}>PRÓXIMO</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </ScrollView>
       </LinearGradient>
-    </View>
+    </SafeAreaView>
   );
 }
 
+// --------------------------------------------------
+// STYLES
+// --------------------------------------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  scrollContainer: {
+    padding: 20,
+    paddingBottom: 160, // ✅ Espaço real pro botão nunca ficar escondido
+  },
+
   titulo: {
     fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 50,
+    marginBottom: 40,
     textAlign: "center",
     color: "#2b4c2b",
   },
+
   perguntaContainer: {
-    flex: 1,
     backgroundColor: "#ffffffaa",
     borderRadius: 5,
     padding: 15,
     elevation: 1,
-
   },
 
   footerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 25,
-    marginBottom: 40,
-    height: 72,
+    marginTop: 40,
   },
 
   col: { flex: 1, justifyContent: "center" },
@@ -238,6 +239,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     minWidth: 150,
   },
+
   textoBotao: {
     fontWeight: "600",
     color: "#fff",
@@ -245,23 +247,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
 
-  /* ALTERADO: BOTÃO FINALIZAR AGORA É AZUL */
   botaoFinalizar: {
     backgroundColor: "#007bff",
     paddingHorizontal: 10,
-    minWidth: 150,
   },
+
   textoBotaoFinalizar: {
     fontWeight: "700",
     color: "#fff",
     textAlign: "center",
     fontSize: 20,
-
   },
 
   botaoAnterior: {
     backgroundColor: "#4b7250",
   },
+
   botaoProximo: {
     backgroundColor: "#4b7250",
   },

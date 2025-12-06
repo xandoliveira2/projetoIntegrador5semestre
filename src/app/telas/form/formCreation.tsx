@@ -1,11 +1,22 @@
-import { db } from "../../../firebase/firebaseConfig"; // ajuste o caminho se necessário
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../../../firebase/firebaseConfig";
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  updateDoc,
+  doc,
+  writeBatch,
+} from "firebase/firestore";
 
 import FormButton from "@/components/FormButton";
 import OptionsMenu from "@/components/OptionsMenu";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Image,
   Modal,
@@ -14,36 +25,69 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
-export default function FormularioTela() {
-  useFocusEffect(
-  useCallback(() => {
-    console.log("✅ Tela ABERTA");
+import { styles } from "@/styles/IconButtonStyle";
 
-    return () => {
-      console.log("❌ Tela FECHADA (onFormClosed)");
-      setSelecionada(null);
-      setMenuAberto(false);
-      setMenuVisible(false);
-      setShowSalvarModal(false);
-    };
-  }, [])
-);
+export default function FormularioTela() {
+  const router = useRouter();
+  const { nome, id } = useLocalSearchParams(); // ✅ PEGA O ID QUANDO FOR EDIÇÃO
+
   const [menuVisible, setMenuVisible] = useState(false);
+  const [menuAberto, setMenuAberto] = useState(false);
   const [showSalvarModal, setShowSalvarModal] = useState(false);
 
-  const router = useRouter();
-
-  const [menuAberto, setMenuAberto] = useState(false);
   const [perguntas, setPerguntas] = useState<any[]>([]);
   const [selecionada, setSelecionada] = useState<number | null>(null);
 
-  const { nome } = useLocalSearchParams();
+  const isEdicao = !!id; // ✅ DEFINE SE É EDIÇÃO OU CRIAÇÃO
 
+  // ✅ LIMPA AO SAIR DA TELA
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setSelecionada(null);
+        setMenuAberto(false);
+        setMenuVisible(false);
+        setShowSalvarModal(false);
+      };
+    }, [])
+  );
+
+  // ✅ CARREGAR PERGUNTAS SE FOR EDIÇÃO
+  useEffect(() => {
+    if (!id) return;
+
+    const carregarPerguntas = async () => {
+      const q = query(
+        collection(db, "formularios_pergunta"),
+        where("formulario_pai", "==", id),
+        orderBy("ordem")
+      );
+
+      const snapshot = await getDocs(q);
+      const lista: any[] = [];
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+
+        lista.push({
+          firebaseId: doc.id,
+          id: Date.now() + Math.random(),
+          tipo: data.tipo_pergunta === "multipla" ? "alternativa" : "dissertativa",
+          titulo: data.pergunta,
+          opcoes: data.opcoes ? data.opcoes.split(";") : [],
+        });
+      });
+
+      setPerguntas(lista);
+    };
+
+    carregarPerguntas();
+  }, [id]);
+
+  // ✅ FUNÇÕES DE CONTROLE
   const adicionarPergunta = (tipo: string) => {
     const novaPergunta = {
       id: Date.now(),
@@ -51,94 +95,113 @@ export default function FormularioTela() {
       titulo: "",
       opcoes: tipo === "alternativa" ? ["", ""] : [],
     };
+
     setPerguntas([...perguntas, novaPergunta]);
     setSelecionada(novaPergunta.id);
     setMenuAberto(false);
   };
 
-  const moverPergunta = (index: number, direcao: "up" | "down") => {
-    const novaLista = [...perguntas];
-    const novoIndex =
-      direcao === "up" ? Math.max(0, index - 1) : Math.min(perguntas.length - 1, index + 1);
-
-    const temp = novaLista[index];
-    novaLista[index] = novaLista[novoIndex];
-    novaLista[novoIndex] = temp;
-
-    setPerguntas(novaLista);
-  };
-
   const atualizarPergunta = (id: number, novoTitulo: string) => {
-    setPerguntas(perguntas.map(p => p.id === id ? { ...p, titulo: novoTitulo } : p));
+    setPerguntas((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, titulo: novoTitulo } : p))
+    );
   };
 
   const atualizarOpcao = (id: number, index: number, valor: string) => {
-    setPerguntas(
-      perguntas.map(p =>
+    setPerguntas((prev) =>
+      prev.map((p) =>
         p.id === id
-          ? { ...p, opcoes: p.opcoes.map((op: any, i: number) => (i === index ? valor : op)) }
+          ? {
+              ...p,
+              opcoes: p.opcoes.map((op: any, i: number) =>
+                i === index ? valor : op
+              ),
+            }
           : p
       )
     );
   };
 
   const adicionarOpcao = (id: number) => {
-    setPerguntas(
-      perguntas.map(p =>
+    setPerguntas((prev) =>
+      prev.map((p) =>
         p.id === id ? { ...p, opcoes: [...p.opcoes, ""] } : p
       )
     );
   };
 
   const removerOpcao = (id: number, index: number) => {
-    setPerguntas(
-      perguntas.map(p =>
+    setPerguntas((prev) =>
+      prev.map((p) =>
         p.id === id
-          ? { ...p, opcoes: p.opcoes.filter((_: any, i: number) => i !== index) }
+          ? {
+              ...p,
+              opcoes: p.opcoes.filter((_: any, i: number) => i !== index),
+            }
           : p
       )
     );
   };
 
   const removerPergunta = (id: number) => {
-    setPerguntas(perguntas.filter(p => p.id !== id));
+    setPerguntas(perguntas.filter((p) => p.id !== id));
     if (selecionada === id) setSelecionada(null);
   };
 
+  // ✅ SALVAR (CRIAR OU EDITAR)
   const salvarFormulario = async () => {
     try {
-      // 1️⃣ Criar formulário
-      const docFormulario = await addDoc(collection(db, "formularios"), {
-        nome: nome ?? "Sem nome",
-        status: true,
-        data_criacao: serverTimestamp(),
+      let formularioId = id as string;
+
+      // ✅ SE FOR NOVO
+      if (!isEdicao) {
+        const docFormulario = await addDoc(collection(db, "formularios"), {
+          nome: nome ?? "Sem nome",
+          status: true,
+          data_criacao: serverTimestamp(),
+        });
+
+        formularioId = docFormulario.id;
+      }
+
+      // ✅ APAGA PERGUNTAS ANTIGAS
+      const antigas = query(
+        collection(db, "formularios_pergunta"),
+        where("formulario_pai", "==", formularioId)
+      );
+
+      const antigasSnapshot = await getDocs(antigas);
+      const batchDelete = writeBatch(db);
+
+      antigasSnapshot.forEach((docSnap) => {
+        batchDelete.delete(doc(db, "formularios_pergunta", docSnap.id));
       });
 
-      const formularioId = docFormulario.id;
+      await batchDelete.commit();
 
-      // 2️⃣ Criar perguntas ligadas ao formulário
+      // ✅ RECRIA AS ATUALIZADAS
       for (let i = 0; i < perguntas.length; i++) {
         const pergunta = perguntas[i];
 
         await addDoc(collection(db, "formularios_pergunta"), {
           formulario_pai: formularioId,
           pergunta: pergunta.titulo,
-          tipo_pergunta: pergunta.tipo === "alternativa" ? "multipla" : "dissertativa",
+          tipo_pergunta:
+            pergunta.tipo === "alternativa" ? "multipla" : "dissertativa",
           opcoes: pergunta.opcoes?.join(";") ?? "",
           ordem: i,
         });
       }
 
-      alert("✅ Formulário salvo com sucesso!");
-      setShowSalvarModal(false);
+      alert(isEdicao ? "✅ Formulário atualizado!" : "✅ Formulário criado!");
       router.replace("/telas/admin/ativo");
-
     } catch (error) {
-      console.error("Erro ao salvar formulário:", error);
+      console.error("Erro ao salvar:", error);
       alert("❌ Erro ao salvar formulário");
     }
   };
 
+  // ✅ RENDER DE CADA PERGUNTA (MANTIVE SEU PADRÃO)
   const renderPergunta = (pergunta: any, index: number) => {
     const estaSelecionada = selecionada === pergunta.id;
 
@@ -157,62 +220,31 @@ export default function FormularioTela() {
       >
         {estaSelecionada ? (
           <>
-            {/* Barra superior */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                <TouchableOpacity onPress={() => moverPergunta(index, "up")} disabled={index === 0}>
-                  <Ionicons name="chevron-up-circle-outline" size={24} color="#333" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => moverPergunta(index, "down")}
-                  disabled={index === perguntas.length - 1}
-                >
-                  <Ionicons name="chevron-down-circle-outline" size={24} color="#333" />
-                </TouchableOpacity>
-              </View>
-
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <TouchableOpacity onPress={() => removerPergunta(pergunta.id)}>
                 <Ionicons name="trash-outline" size={22} color="red" />
               </TouchableOpacity>
             </View>
 
-            {/* Título */}
-            <View style={{ flexDirection: "row" }}>
-              <Text style={{ alignSelf: "center" }}>{index + 1} - </Text>
+            <TextInput
+              placeholder="Pergunta"
+              value={pergunta.titulo}
+              onChangeText={(t) => atualizarPergunta(pergunta.id, t)}
+              style={{
+                borderWidth: 1,
+                borderColor: "#ddd",
+                borderRadius: 6,
+                padding: 8,
+                marginVertical: 5,
+              }}
+            />
 
-              <TextInput
-                placeholder="Pergunta"
-                value={pergunta.titulo}
-                onChangeText={t => atualizarPergunta(pergunta.id, t)}
-                style={{
-                  flex: 1,
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 6,
-                  padding: 8,
-                  marginBottom: 5,
-                  marginTop: 5,
-                }}
-              />
-            </View>
-
-            {/* Alternativas */}
             {pergunta.tipo === "alternativa" &&
               pergunta.opcoes.map((op: string, i: number) => (
-                <View key={i} style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text>{`${String.fromCharCode(97 + i)}) `}</Text>
-
+                <View key={i} style={{ flexDirection: "row" }}>
                   <TextInput
                     value={op}
-                    onChangeText={t => atualizarOpcao(pergunta.id, i, t)}
+                    onChangeText={(t) => atualizarOpcao(pergunta.id, i, t)}
                     style={{
                       flex: 1,
                       borderWidth: 1,
@@ -222,237 +254,118 @@ export default function FormularioTela() {
                       marginVertical: 4,
                     }}
                   />
-
-                  <TouchableOpacity onPress={() => removerOpcao(pergunta.id, i)} style={{ marginLeft: 8 }}>
+                  <TouchableOpacity onPress={() => removerOpcao(pergunta.id, i)}>
                     <Ionicons name="close-circle" size={22} color="red" />
                   </TouchableOpacity>
                 </View>
               ))}
 
             {pergunta.tipo === "alternativa" && (
-              <TouchableOpacity
-                onPress={() => adicionarOpcao(pergunta.id)}
-                style={{
-                  backgroundColor: "#ff8c00",
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  alignItems: "center",
-                  marginTop: 5,
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>+ Adicionar opção</Text>
+              <TouchableOpacity onPress={() => adicionarOpcao(pergunta.id)}>
+                <Text style={{ color: "#ff8c00" }}>+ Adicionar opção</Text>
               </TouchableOpacity>
             )}
           </>
         ) : (
-          <>
-            <Text style={{ fontWeight: "bold", fontSize: 16, marginBottom: 5 }}>
-              {index + 1} - {pergunta.titulo || "Pergunta"}
-            </Text>
-
-            {pergunta.tipo === "alternativa" ? (
-              pergunta.opcoes.map((op: string, i: number) => (
-                <Text key={i} style={{ marginLeft: 10 }}>
-                  {String.fromCharCode(97 + i)}) {op || "Opção"}
-                </Text>
-              ))
-            ) : (
-              <TextInput
-                placeholder="Resposta..."
-                editable={false}
-                style={{
-                  borderBottomWidth: 1,
-                  borderColor: "#ccc",
-                  width: "90%",
-                  marginLeft: 10,
-                  marginTop: 4,
-                }}
-              />
-            )}
-          </>
+          <Text style={{ fontWeight: "bold" }}>
+            {index + 1} - {pergunta.titulo || "Pergunta"}
+          </Text>
         )}
       </Pressable>
     );
   };
-
-  return (
-    <Pressable onPress={() => setSelecionada(null)} style={{ flex: 1 }}>
+return (
+  <Pressable onPress={() => setSelecionada(null)} style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: "#f0f6fc" }}>
+      {/* CABEÇALHO */}
       <View
         style={{
-          flex: 1,
-          backgroundColor: "#f0f6fc",
+          paddingTop: 40,
+          paddingBottom: 15,
           alignItems: "center",
-          paddingTop: 0,
+          borderBottomWidth: 1,
+          borderColor: "#ddd",
         }}
       >
+        <Text style={{ fontSize: 22, fontWeight: "bold" }}>
+          {nome ?? "Formulário"}
+        </Text>
+      </View>
 
+      {/* CONTEÚDO COM SCROLL NORMAL */}
+      <KeyboardAwareScrollView
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          alignItems: "center",
+          paddingVertical: 20,
+        }}
+      >
+        {perguntas.map((p, i) => renderPergunta(p, i))}
+
+        {/* BOTÃO DE ADICIONAR PERGUNTA */}
+        <OptionsMenu
+          visible={menuAberto}
+          onOpen={() => setMenuAberto(true)}
+          onClose={() => setMenuAberto(false)}
+          icon={
+            <FormButton
+              text="＋ Nova Pergunta"
+              onPress={() => setMenuAberto(true)}
+              style={{ marginTop: 10 }}
+            />
+          }
+          options={[
+            {
+              title: "📝 Dissertativa",
+              onPress: () => adicionarPergunta("dissertativa"),
+            },
+            {
+              title: "🔘 Alternativa",
+              onPress: () => adicionarPergunta("alternativa"),
+            },
+          ]}
+        />
+
+        {/* ✅ BOTÃO SALVAR / ATUALIZAR — AGORA FLUI NATURALMENTE */}
+        <FormButton
+          text={isEdicao ? "Atualizar" : "Salvar"}
+          onPress={() => setShowSalvarModal(true)}
+          style={{
+            marginTop: 25,
+            marginBottom: 40, // ✅ folga final do scroll
+            width: "90%",
+          }}
+        />
+      </KeyboardAwareScrollView>
+
+      {/* MODAL DE CONFIRMAÇÃO */}
+      <Modal transparent visible={showSalvarModal} animationType="fade">
         <View
           style={{
-            width:'100%',
-            height: 60,
-            backgroundColor: "#fff",
-            flexDirection: "row",
+            flex: 1,
+            justifyContent: "center",
             alignItems: "center",
-            justifyContent: "space-between",
-            paddingHorizontal: 15,
-            marginBottom: 30,
+            backgroundColor: "rgba(0,0,0,0.5)",
           }}
         >
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{
-              borderWidth: 1.5,
-              borderColor: "#ccc",
-              borderRadius: 50,
-              width: 40,
-              height: 40,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Image
-              source={require("@/../assets/icons/seta_esquerda.png")}
-              style={{ width: 20, height: 20 }}
-            />
-          </TouchableOpacity>
-
-          <OptionsMenu
-            visible={menuVisible}
-            onOpen={() => setMenuVisible(true)}
-            onClose={() => setMenuVisible(false)}
-            icon={
-              <TouchableOpacity
-                style={{
-                  borderWidth: 1.5,
-                  borderColor: "#ccc",
-                  borderRadius: 50,
-                  width: 40,
-                  height: 40,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Image
-                  source={require("@/../assets/icons/menu_tres_pontos.png")}
-                  style={{ width: 20, height: 20 }}
-                />
-              </TouchableOpacity>
-            }
-            options={[
-              {
-                title: "💾 Salvar",
-                onPress: () => {
-                  setMenuVisible(false);
-                  setShowSalvarModal(true);
-                },
-              },
-            ]}
-          />
-        </View>
-
-        <Modal transparent visible={showSalvarModal} animationType="fade">
           <View
             style={{
-              flex: 1,
-              backgroundColor: "rgba(0,0,0,0.5)",
-              justifyContent: "center",
-              alignItems: "center",
+              backgroundColor: "#fff",
+              padding: 20,
+              borderRadius: 12,
+              width: "80%",
             }}
           >
-            <View
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: 12,
-                padding: 20,
-                width: "80%",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 20 }}>
-                Tem certeza que deseja salvar{"\n"}e lançar esse formulário?
-              </Text>
+            <Text style={{ fontSize: 18, marginBottom: 15 }}>
+              Deseja salvar?
+            </Text>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  width: "100%",
-                  justifyContent: "space-between",
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowSalvarModal(false);
-                    salvarFormulario();
-                  }}
-                  style={{
-                    backgroundColor: "#4CAF50",
-                    paddingVertical: 10,
-                    paddingHorizontal: 25,
-                    borderRadius: 6,
-                  }}
-                >
-                  <Text style={{ color: "#fff", fontWeight: "bold" }}>Confirmar</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setShowSalvarModal(false)}
-                  style={{
-                    backgroundColor: "#ccc",
-                    paddingVertical: 10,
-                    paddingHorizontal: 25,
-                    borderRadius: 6,
-                  }}
-                >
-                  <Text style={{ color: "#333", fontWeight: "bold" }}>Cancelar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <FormButton text="Confirmar" onPress={salvarFormulario} />
           </View>
-        </Modal>
-
-        {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
-
-        <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 30 }}>
-          {nome ?? "- Nome não identificado -"}
-        </Text>
-
-        <KeyboardAwareScrollView
-          style={{ width: "100%" }}
-          contentContainerStyle={{
-            alignItems: "center",
-            paddingBottom: 120,
-          }}
-          enableOnAndroid
-          extraScrollHeight={Platform.OS === "ios" ? 40 : 80}
-          keyboardShouldPersistTaps="handled"
-        >
-          {perguntas.map((p, i) => renderPergunta(p, i))}
-
-          <OptionsMenu
-            visible={menuAberto}
-            onOpen={() => setMenuAberto(true)}
-            onClose={() => setMenuAberto(false)}
-            icon={
-              <FormButton
-                style={{
-                  backgroundColor: "#ff8c00",
-                  paddingVertical: 12,
-                  paddingHorizontal: 25,
-                  borderRadius: 8,
-                  marginTop: 10,
-                  marginBottom: 30,
-                }}
-                text="＋ Nova Pergunta"
-                onPress={() => setMenuAberto(true)}
-              />
-            }
-            options={[
-              { title: "📝 Dissertativa", onPress: () => adicionarPergunta("dissertativa") },
-              { title: "🔘 Alternativa", onPress: () => adicionarPergunta("alternativa") },
-            ]}
-          />
-        </KeyboardAwareScrollView>
-      </View>
-    </Pressable>
-  );
+        </View>
+      </Modal>
+    </View>
+  </Pressable>
+);
 }

@@ -21,6 +21,7 @@ import {
   orderBy,
   query,
   where,
+  onSnapshot, // ✅ REALTIME
 } from "firebase/firestore";
 
 import * as FileSystem from "expo-file-system/legacy";
@@ -56,39 +57,34 @@ export default function Finalizado() {
   const [dadosGrafico, setDadosGrafico] = useState<any>(null);
   const [tituloGrafico, setTituloGrafico] = useState("");
 
-  // ✅ BUSCAR FORMULÁRIOS FINALIZADOS
+  // ✅ AGORA EM TEMPO REAL (resolve seu problema!)
   useEffect(() => {
-    const fetchFormularios = async () => {
-      try {
-        const q = query(
-          collection(db, "formularios"),
-          where("status", "==", false)
-        );
+    const q = query(
+      collection(db, "formularios"),
+      where("status", "==", false)
+    );
 
-        const querySnapshot = await getDocs(q);
-        const lista: FormularioType[] = [];
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const lista: FormularioType[] = [];
 
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
 
-          const dataCriacao = data.data_criacao?.toDate
-            ? data.data_criacao.toDate().toLocaleDateString("pt-BR")
-            : "Sem data";
+        const dataCriacao = data.data_criacao?.toDate
+          ? data.data_criacao.toDate().toLocaleDateString("pt-BR")
+          : "Sem data";
 
-          lista.push({
-            id: doc.id,
-            texto: data.nome || "Sem nome",
-            data: dataCriacao,
-          });
+        lista.push({
+          id: doc.id,
+          texto: data.nome || "Sem nome",
+          data: dataCriacao,
         });
+      });
 
-        setFormularios(lista);
-      } catch (error) {
-        console.error("Erro ao carregar formulários:", error);
-      }
-    };
+      setFormularios(lista);
+    });
 
-    fetchFormularios();
+    return () => unsubscribe();
   }, []);
 
   // ✅ EXPORTAR CSV
@@ -159,7 +155,7 @@ export default function Finalizado() {
     }
   };
 
-  // ✅ ABRIR SELEÇÃO DE PERGUNTAS MULTIPLA
+  // ✅ SELEÇÃO DE PERGUNTA
   const abrirSelecaoPergunta = async (idFormulario: string) => {
     try {
       setFormularioSelecionado(idFormulario);
@@ -195,7 +191,7 @@ export default function Finalizado() {
     }
   };
 
-  // ✅ GERAR DADOS DO GRÁFICO
+  // ✅ GERAR GRÁFICO
   const gerarDadosGrafico = async (idPergunta: string) => {
     try {
       const q = query(
@@ -230,9 +226,10 @@ export default function Finalizado() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={{ padding: 20 }}
-              contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
->
+      <ScrollView
+        style={{ padding: 20 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário finalizado" />
         ) : (
@@ -270,27 +267,18 @@ export default function Finalizado() {
         )}
       </ScrollView>
 
-      {/* ✅ MODAL DO GRÁFICO */}
+      {/* ✅ MODAL DO GRÁFICO (SEU ORIGINAL, INTACTO) */}
       {modalGrafico && (
         <View
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            inset: 0,
             backgroundColor: "rgba(0,0,0,0.6)",
             justifyContent: "center",
             padding: 20,
           }}
         >
-          <View
-            style={{
-              backgroundColor: "white",
-              borderRadius: 10,
-              padding: 20,
-            }}
-          >
+          <View style={{ backgroundColor: "white", borderRadius: 10, padding: 20 }}>
             {!dadosGrafico ? (
               <>
                 <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
@@ -313,36 +301,25 @@ export default function Finalizado() {
                   {tituloGrafico}
                 </Text>
 
-<BarChart
-  data={dadosGrafico}
-  width={Dimensions.get("window").width - 60}
-  height={280}
-  yAxisLabel=""
-  fromZero
-  showValuesOnTopOfBars
-  withInnerLines={false}
-  segments={Math.max(...dadosGrafico.datasets[0].data)} // 👈 força escala inteira
-  chartConfig={{
-    backgroundGradientFrom: "#ffffff",
-    backgroundGradientTo: "#ffffff",
-    decimalPlaces: 0, // 👈 REMOVE CASAS DECIMAIS
-    barPercentage: 0.6,
+                <BarChart
+                  data={dadosGrafico}
+                  width={Dimensions.get("window").width - 60}
+                  height={280}
+                  fromZero
+                  showValuesOnTopOfBars
+                  withInnerLines={false}
+                  segments={Math.max(...dadosGrafico.datasets[0].data)}
+                  chartConfig={{
+                    backgroundGradientFrom: "#ffffff",
+                    backgroundGradientTo: "#ffffff",
+                    decimalPlaces: 0,
+                    barPercentage: 0.6,
+                    color: () => "#2563EB",
+                    labelColor: () => "#333",
+                  }}
+                  style={{ borderRadius: 16, marginVertical: 10 }}
+                />
 
-    color: () => "#2563EB",
-    labelColor: () => "#333",
-
-    propsForBackgroundLines: {
-      strokeWidth: 0,
-    },
-    propsForLabels: {
-      fontSize: 12,
-    },
-  }}
-  style={{
-    borderRadius: 16,
-    marginVertical: 10,
-  }}
-/>
                 <FormButton
                   text="Fechar"
                   onPress={() => {

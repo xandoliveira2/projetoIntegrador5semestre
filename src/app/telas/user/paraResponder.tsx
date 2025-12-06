@@ -78,20 +78,16 @@ export default function ParaResponder() {
           });
         });
 
-        // ✅ REMOVE QUALQUER DUPLICATA POR GARANTIA
-        const listaUnica = lista.filter(
-          (item, index, self) =>
-            index === self.findIndex((f) => f.id === item.id)
-        );
+        setFormularios(lista);
 
-        setFormularios(listaUnica);
       } catch (error) {
         console.error("Erro ao carregar formulários:", error);
       }
     };
 
     carregarFormularios();
-  }, [user?.username]);
+  }, [user]);
+
 
   return (
     <View>
@@ -102,9 +98,7 @@ export default function ParaResponder() {
           <EmptyListMessage mensagem="Nenhum formulário para responder" />
         ) : (
           formularios.map((f) => (
-            <View key={`form-${f.id}`} style={{ marginTop: 15 }}>
-              {/* ✅ key agora é 100% única */}
-
+            <View key={f.id} style={{ marginTop: 15 }}>
               <Date data={f.data} />
 
               <Formulario texto={f.texto}>
