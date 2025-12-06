@@ -313,20 +313,36 @@ export default function Finalizado() {
                   {tituloGrafico}
                 </Text>
 
-                <BarChart
-                  data={dadosGrafico}
-                  width={Dimensions.get("window").width - 80}
-                  height={250}
-                  yAxisLabel=""
-                  chartConfig={{
-                    backgroundGradientFrom: "#fff",
-                    backgroundGradientTo: "#fff",
-                    decimalPlaces: 0,
-                    color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
-                  }}
-                  style={{ borderRadius: 10 }}
-                />
+<BarChart
+  data={dadosGrafico}
+  width={Dimensions.get("window").width - 60}
+  height={280}
+  yAxisLabel=""
+  fromZero
+  showValuesOnTopOfBars
+  withInnerLines={false}
+  segments={Math.max(...dadosGrafico.datasets[0].data)} // 👈 força escala inteira
+  chartConfig={{
+    backgroundGradientFrom: "#ffffff",
+    backgroundGradientTo: "#ffffff",
+    decimalPlaces: 0, // 👈 REMOVE CASAS DECIMAIS
+    barPercentage: 0.6,
 
+    color: () => "#2563EB",
+    labelColor: () => "#333",
+
+    propsForBackgroundLines: {
+      strokeWidth: 0,
+    },
+    propsForLabels: {
+      fontSize: 12,
+    },
+  }}
+  style={{
+    borderRadius: 16,
+    marginVertical: 10,
+  }}
+/>
                 <FormButton
                   text="Fechar"
                   onPress={() => {
