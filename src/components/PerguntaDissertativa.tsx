@@ -28,16 +28,18 @@ const styles = StyleSheet.create({
   },
   pergunta: {
     fontWeight: "bold",
-    fontSize: 18,
+    fontSize: 23,
     marginBottom: 15,
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 10,
     minHeight: 80,
     textAlignVertical: "top",
+    fontSize:18,
+    
   },
 });
 
