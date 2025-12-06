@@ -17,7 +17,7 @@ const PerguntaAlternativa = ({ pergunta, opcoes, resposta, onSelect }: Props) =>
         const selecionado = resposta === opcao;
         return (
           <TouchableOpacity
-            key={index}
+            key={`${opcao}-${index}`}
             style={[styles.opcao, selecionado && styles.opcaoSelecionada]}
             onPress={() => onSelect(opcao)}
           >

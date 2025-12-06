@@ -1,9 +1,9 @@
+import { useAuth } from "@/context/AuthContext";
 import { db } from "@/firebase/firebaseConfig";
 import { useRouter } from 'expo-router';
-import { doc, getDoc,query, where,collection , getDocs} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     marginBottom: 20
   },
   input: {
@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     width: '80%',
     padding: 10,
     marginVertical: 8,
+    fontSize:20,
   },
   button: {
     backgroundColor: 'orange',
@@ -106,7 +107,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    textAlign: 'center'
+    fontSize: 26,
+    textAlign: 'center',
+    fontWeight:'bold'
   },
 });

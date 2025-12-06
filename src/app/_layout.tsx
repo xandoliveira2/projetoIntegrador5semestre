@@ -1,6 +1,6 @@
+import { AuthProvider } from "@/context/AuthContext";
 import { Stack } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
-import { AuthProvider } from "@/context/AuthContext";
 
 ErrorUtils.setGlobalHandler((error, isFatal) => {
   console.log('🔥 ERRO GLOBAL:', error);
@@ -11,11 +11,7 @@ export default function RootLayout() {
     <AuthProvider>
       <Stack screenOptions={{ headerShown: false, header: () => <Header /> }}>
         <Stack.Screen name="index" />
-        {/* Se você realmente tem sublayouts, mantenha-os aqui */}
-        <Stack.Screen name="telas/admin/_layout" />
-        <Stack.Screen name="telas/admin/formulario/_layout" />
-        <Stack.Screen name="telas/admin/usuarios/_layout" />
-        <Stack.Screen name="telas/user/_layout" />
+
       </Stack>
     </AuthProvider>
   );

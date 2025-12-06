@@ -18,19 +18,17 @@ export default function Respondidos() {
 
     const carregarRespondidos = async () => {
       try {
-        // 1️⃣ Buscar todos os formulários respondidos pelo usuário
         const q = query(
           collection(db, "usuario_formularios_respondidos"),
           where("usuario", "==", user.username)
         );
 
-        console.log(user.username)
-      
+        console.log(user.username);
+
         const snapshot = await getDocs(q);
 
         const listaTemp: any[] = [];
 
-        // 2️⃣ Para cada resposta, buscar os dados do formulário na collection "formularios"
         for (const resposta of snapshot.docs) {
           const dados = resposta.data();
           const formRef = doc(db, "formularios", dados.id_formulario);
@@ -39,12 +37,12 @@ export default function Respondidos() {
           if (formSnap.exists()) {
             const formData = formSnap.data();
 
-              listaTemp.push({
-            id: dados.id_formulario,
-            texto: formData.nome,
-            data: dados.data_resposta.toDate().toLocaleDateString("pt-BR"),
-            ativo: formData.status,
-          });
+            listaTemp.push({
+              id: dados.id_formulario,
+              texto: formData.nome,
+              data: dados.data_resposta.toDate().toLocaleDateString("pt-BR"),
+              ativo: formData.status,
+            });
           }
         }
 
@@ -69,17 +67,17 @@ export default function Respondidos() {
 
   return (
     <View>
-      <ScrollView style={{ padding: 20 }}>
+      <ScrollView 
+        style={{ padding: 20 }}
+        contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
+      >
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Você ainda não respondeu nenhum formulário" />
         ) : (
-          formularios.map((f) => (
-            <View key={f.id} style={{ marginTop: 15 }}>
+          formularios.map((f, index) => (
+            <View key={`${f.id}-${index}`} style={{ marginTop: 15 }}>
               <Date data={f.data} />
-
-              <Formulario texto={f.texto}>
-       
-              </Formulario>
+              <Formulario texto={f.texto}></Formulario>
             </View>
           ))
         )}

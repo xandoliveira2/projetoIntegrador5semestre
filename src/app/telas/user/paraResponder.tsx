@@ -6,11 +6,11 @@ import EmptyListMessage from "@/components/EmptyListMessage";
 import FormButton from "@/components/FormButton";
 import Formulario from "@/components/Formulario";
 
-import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "expo-router";
 
 import { db } from "@/firebase/firebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export default function ParaResponder() {
   const router = useRouter();
@@ -19,10 +19,10 @@ export default function ParaResponder() {
   const [formularios, setFormularios] = useState<any[]>([]);
 
   const handleResponder = (idFormulario: string) => {
-    console.log(idFormulario)
+    console.log(idFormulario);
     router.push({
       pathname: "/telas/responderFormulario",
-      params: { idFormulario }
+      params: { idFormulario },
     });
   };
 
@@ -33,7 +33,7 @@ export default function ParaResponder() {
       try {
         const usuario = user.username;
 
-        // 1️⃣ Buscar formulários já respondidos pelo usuário
+        // Buscar IDs dos formulários já respondidos
         const qRespondidos = query(
           collection(db, "usuario_formularios_respondidos"),
           where("usuario", "==", usuario)
@@ -45,7 +45,7 @@ export default function ParaResponder() {
           (doc) => doc.data().id_formulario
         );
 
-        // 2️⃣ Buscar formulários disponíveis (status = true)
+        // Buscar formulários ativos
         const qFormularios = query(
           collection(db, "formularios"),
           where("status", "==", true)
@@ -58,7 +58,6 @@ export default function ParaResponder() {
         formsSnapshot.forEach((doc) => {
           const data = doc.data();
 
-          // ignorar formulários já respondidos
           if (idsRespondidos.includes(doc.id)) return;
 
           const dataCriacao = data.data_criacao?.toDate
@@ -73,7 +72,6 @@ export default function ParaResponder() {
         });
 
         setFormularios(lista);
-
       } catch (error) {
         console.error(error);
       }
@@ -82,15 +80,16 @@ export default function ParaResponder() {
     carregarFormularios();
   }, [user]);
 
-
   return (
     <View>
-      <ScrollView style={{ padding: 20 }}>
+      <ScrollView style={{ padding: 20 }}
+      contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
+>
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário para responder" />
         ) : (
-          formularios.map((f) => (
-            <View key={f.id} style={{ marginTop: 15 }}>
+          formularios.map((f, index) => (
+            <View key={`${f.id}-${index}`} style={{ marginTop: 15 }}>
               <Date data={f.data} />
 
               <Formulario texto={f.texto}>

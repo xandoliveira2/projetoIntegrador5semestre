@@ -17,14 +17,14 @@ import ModalNovoFormulario, { FormData as FD } from "@/components/ModalNovoFormu
 import OptionsMenu from "@/components/OptionsMenu";
 import { db } from "@/firebase/firebaseConfig";
 import { styles } from "@/styles/IconButtonStyle";
-import { 
-  collection, 
-  getDocs, 
-  query, 
-  where,
+import {
+  collection,
   deleteDoc,
   doc,
-  updateDoc
+  getDocs,
+  query,
+  updateDoc,
+  where
 } from "firebase/firestore";
 
 
@@ -177,7 +177,9 @@ const confirmarEncerramento = async () => {
       </Text>
 
       {/* Lista de formulários */}
-      <ScrollView style={{ padding: 20 }}>
+      <ScrollView style={{ padding: 20 }}
+              contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
+>
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário ativo" />
         ) : (

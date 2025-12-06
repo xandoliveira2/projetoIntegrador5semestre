@@ -16,9 +16,9 @@ import { styles } from "@/styles/IconButtonStyle";
 import {
   collection,
   getDocs,
+  orderBy,
   query,
   where,
-  orderBy,
 } from "firebase/firestore";
 
 // ✅ IMPORTAÇÃO LEGACY (REMOVE O ERRO)
@@ -172,7 +172,9 @@ export default function Finalizado() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={{ padding: 20 }}>
+      <ScrollView style={{ padding: 20 }}
+              contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
+>
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário finalizado" />
         ) : (
