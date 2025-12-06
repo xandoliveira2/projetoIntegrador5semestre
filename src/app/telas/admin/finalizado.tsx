@@ -3,6 +3,8 @@ import {
   Alert,
   ScrollView,
   View,
+  Text,
+  Dimensions,
 } from "react-native";
 
 import Date from "@/components/Date";
@@ -21,9 +23,10 @@ import {
   where,
 } from "firebase/firestore";
 
-// ✅ IMPORTAÇÃO LEGACY (REMOVE O ERRO)
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
+
+import { BarChart } from "react-native-chart-kit";
 
 type FormularioType = {
   id: string;
@@ -43,8 +46,15 @@ type RespostaType = {
 };
 
 export default function Finalizado() {
-  const [menuAbertoId, setMenuAbertoId] = useState<string>("");
+  const [menuAbertoId, setMenuAbertoId] = useState("");
   const [formularios, setFormularios] = useState<FormularioType[]>([]);
+
+  const [modalGrafico, setModalGrafico] = useState(false);
+  const [perguntasMultipla, setPerguntasMultipla] = useState<PerguntaType[]>([]);
+  const [formularioSelecionado, setFormularioSelecionado] = useState("");
+
+  const [dadosGrafico, setDadosGrafico] = useState<any>(null);
+  const [tituloGrafico, setTituloGrafico] = useState("");
 
   // ✅ BUSCAR FORMULÁRIOS FINALIZADOS
   useEffect(() => {
@@ -81,10 +91,9 @@ export default function Finalizado() {
     fetchFormularios();
   }, []);
 
-  // ✅ EXPORTAR CSV 100% FUNCIONAL
+  // ✅ EXPORTAR CSV
   const exportarCSV = async (idFormulario: string) => {
     try {
-      // 1️⃣ Buscar perguntas
       const perguntasQuery = query(
         collection(db, "formularios_pergunta"),
         where("formulario_pai", "==", idFormulario),
@@ -102,12 +111,6 @@ export default function Finalizado() {
         });
       });
 
-      if (perguntas.length === 0) {
-        Alert.alert("Erro", "Este formulário não possui perguntas.");
-        return;
-      }
-
-      // 2️⃣ Buscar respostas
       const respostasQuery = query(
         collection(db, "usuario_formularios_respondidos"),
         where("id_formulario", "==", idFormulario)
@@ -125,12 +128,6 @@ export default function Finalizado() {
         });
       });
 
-      if (respostas.length === 0) {
-        Alert.alert("Aviso", "Nenhuma resposta encontrada.");
-        return;
-      }
-
-      // 3️⃣ Organizar por usuário
       const usuarios: Record<string, Record<string, string>> = {};
 
       respostas.forEach((res) => {
@@ -140,33 +137,94 @@ export default function Finalizado() {
         usuarios[res.usuario][res.id_pergunta] = res.respostas;
       });
 
-      // 4️⃣ Montar CSV
       let csv = "Usuário;" + perguntas.map((p) => p.texto).join(";") + "\n";
 
       Object.entries(usuarios).forEach(([usuario, respostasUsuario]) => {
         const linha = [
           usuario,
-          ...perguntas.map(
-            (p) => respostasUsuario[p.id] || "Sem resposta"
-          ),
+          ...perguntas.map((p) => respostasUsuario[p.id] || "Sem resposta"),
         ].join(";");
 
         csv += linha + "\n";
       });
 
-      // 5️⃣ Criar arquivo
       const fileUri =
-        FileSystem.documentDirectory +
-        `formulario_${idFormulario}.csv`;
+        FileSystem.documentDirectory + `formulario_${idFormulario}.csv`;
 
       await FileSystem.writeAsStringAsync(fileUri, csv);
-
-      // 6️⃣ Abrir compartilhamento
       await Sharing.shareAsync(fileUri);
-
     } catch (error) {
       console.error("Erro ao exportar CSV:", error);
       Alert.alert("Erro", "Falha ao exportar o CSV.");
+    }
+  };
+
+  // ✅ ABRIR SELEÇÃO DE PERGUNTAS MULTIPLA
+  const abrirSelecaoPergunta = async (idFormulario: string) => {
+    try {
+      setFormularioSelecionado(idFormulario);
+      setDadosGrafico(null);
+
+      const q = query(
+        collection(db, "formularios_pergunta"),
+        where("formulario_pai", "==", idFormulario),
+        where("tipo_pergunta", "==", "multipla"),
+        orderBy("ordem")
+      );
+
+      const snapshot = await getDocs(q);
+      const lista: PerguntaType[] = [];
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        lista.push({
+          id: doc.id,
+          texto: data.pergunta,
+        });
+      });
+
+      if (lista.length === 0) {
+        Alert.alert("Aviso", "Esse formulário não possui perguntas múltiplas.");
+        return;
+      }
+
+      setPerguntasMultipla(lista);
+      setModalGrafico(true);
+    } catch (error) {
+      console.error("Erro ao buscar perguntas:", error);
+    }
+  };
+
+  // ✅ GERAR DADOS DO GRÁFICO
+  const gerarDadosGrafico = async (idPergunta: string) => {
+    try {
+      const q = query(
+        collection(db, "usuario_formularios_respondidos"),
+        where("id_formulario", "==", formularioSelecionado),
+        where("id_pergunta", "==", idPergunta)
+      );
+
+      const snapshot = await getDocs(q);
+      const contagem: Record<string, number> = {};
+
+      snapshot.forEach((doc) => {
+        const { respostas } = doc.data();
+        contagem[respostas] = (contagem[respostas] || 0) + 1;
+      });
+
+      const labels = Object.keys(contagem);
+      const valores = Object.values(contagem);
+
+      setTituloGrafico(
+        perguntasMultipla.find((p) => p.id === idPergunta)?.texto || "Gráfico"
+      );
+
+      setDadosGrafico({
+        labels,
+        datasets: [{ data: valores }],
+      });
+    } catch (error) {
+      console.error("Erro ao gerar gráfico:", error);
     }
   };
 
@@ -200,6 +258,10 @@ export default function Finalizado() {
                       title: "📤 Exportar Dados (CSV)",
                       onPress: () => exportarCSV(f.id),
                     },
+                    {
+                      title: "📊 Gerar Gráfico",
+                      onPress: () => abrirSelecaoPergunta(f.id),
+                    },
                   ]}
                 />
               </Formulario>
@@ -207,6 +269,76 @@ export default function Finalizado() {
           ))
         )}
       </ScrollView>
+
+      {/* ✅ MODAL DO GRÁFICO */}
+      {modalGrafico && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              borderRadius: 10,
+              padding: 20,
+            }}
+          >
+            {!dadosGrafico ? (
+              <>
+                <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+                  Selecione uma pergunta:
+                </Text>
+
+                {perguntasMultipla.map((p) => (
+                  <FormButton
+                    key={p.id}
+                    text={p.texto}
+                    onPress={() => gerarDadosGrafico(p.id)}
+                  />
+                ))}
+
+                <FormButton text="Cancelar" onPress={() => setModalGrafico(false)} />
+              </>
+            ) : (
+              <>
+                <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+                  {tituloGrafico}
+                </Text>
+
+                <BarChart
+                  data={dadosGrafico}
+                  width={Dimensions.get("window").width - 80}
+                  height={250}
+                  yAxisLabel=""
+                  chartConfig={{
+                    backgroundGradientFrom: "#fff",
+                    backgroundGradientTo: "#fff",
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+                  }}
+                  style={{ borderRadius: 10 }}
+                />
+
+                <FormButton
+                  text="Fechar"
+                  onPress={() => {
+                    setModalGrafico(false);
+                    setDadosGrafico(null);
+                  }}
+                />
+              </>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
