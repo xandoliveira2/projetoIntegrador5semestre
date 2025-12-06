@@ -29,10 +29,9 @@ export default function ResponderFormulario() {
   const [perguntas, setPerguntas] = useState<any[]>([]);
   const [indice, setIndice] = useState(0);
   const [respostas, setRespostas] = useState<{ [key: string]: string }>({});
+  const [modoRevisao, setModoRevisao] = useState(false); // ✅ NOVO ESTADO
 
-  // --------------------------------------------------
-  // Buscar perguntas do Firestore
-  // --------------------------------------------------
+  // ✅ BUSCAR PERGUNTAS
   useEffect(() => {
     if (!idFormulario) return;
 
@@ -90,19 +89,29 @@ export default function ResponderFormulario() {
 
   const perguntaAtual = perguntas[indice];
 
+  // ✅ ATUALIZA SEM BUG DE TELA
   const handleChange = (valor: string) => {
-    setRespostas({ ...respostas, [perguntaAtual.id]: valor });
+    setRespostas((prev) => ({
+      ...prev,
+      [perguntaAtual.id]: valor,
+    }));
   };
 
   const proximaPergunta = () => {
-    if (indice < perguntas.length - 1) setIndice(indice + 1);
+    if (indice < perguntas.length - 1) setIndice((prev) => prev + 1);
   };
 
   const perguntaAnterior = () => {
-    if (indice > 0) setIndice(indice - 1);
+    if (indice > 0) setIndice((prev) => prev - 1);
   };
 
-  const finalizar = async () => {
+  // ✅ AGORA FINALIZAR VIRA REVISÃO
+  const irParaRevisao = () => {
+    setModoRevisao(true);
+  };
+
+  // ✅ ENVIO REAL SÓ AQUI
+  const confirmarEnvio = async () => {
     try {
       const idUsuario = user?.username ?? "usuario_teste";
 
@@ -121,11 +130,17 @@ export default function ResponderFormulario() {
       await Promise.all(promises);
 
       alert("✅ Respostas enviadas com sucesso!");
-      router.push("/telas/user/paraResponder");
+      router.replace("/telas/user/paraResponder");
     } catch (error) {
       console.log("Erro ao salvar respostas:", error);
       alert("❌ Erro ao enviar respostas.");
     }
+  };
+
+  // ✅ VOLTAR DA REVISÃO PRA EDIÇÃO
+  const voltarEdicao = () => {
+    setModoRevisao(false);
+    setIndice(0);
   };
 
   const isFirst = indice === 0;
@@ -134,61 +149,73 @@ export default function ResponderFormulario() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.titulo}>Respondendo Formulário</Text>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <Text style={styles.titulo}>
+            {modoRevisao ? "Revisar Respostas" : "Respondendo Formulário"}
+          </Text>
 
-          <View style={styles.perguntaContainer}>
-            {perguntaAtual.tipo === "multipla" ? (
-              <PerguntaAlternativa
-                pergunta={perguntaAtual.titulo}
-                opcoes={perguntaAtual.opcoes}
-                resposta={respostas[perguntaAtual.id] || null}
-                onSelect={handleChange}
-              />
-            ) : (
-              <PerguntaDissertativa
-                pergunta={perguntaAtual.titulo}
-                resposta={respostas[perguntaAtual.id] || ""}
-                onChange={handleChange}
-              />
-            )}
-          </View>
-
-          {/* ✅ FOOTER NORMAL (SEM POSITION ABSOLUTE) */}
-          <View style={styles.footerRow}>
-            <View style={[styles.col, styles.colLeft]}>
-              {!isFirst && (
-                <TouchableOpacity
-                  style={[styles.botao, styles.botaoAnterior]}
-                  onPress={perguntaAnterior}
-                >
-                  <Text style={styles.textoBotao}>ANTERIOR</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {!isLast && <View style={[styles.col, styles.colCenter]} />}
-
-            <View style={[styles.col, styles.colRight]}>
-              {isLast ? (
-                <TouchableOpacity
-                  style={[styles.botao, styles.botaoFinalizar]}
-                  onPress={finalizar}
-                >
-                  <Text style={styles.textoBotaoFinalizar}>FINALIZAR</Text>
-                </TouchableOpacity>
+          {/* ✅ TELA DE REVISÃO */}
+          {modoRevisao ? (
+            perguntas.map((p, i) => (
+              <View key={p.id} style={styles.revisaoCard}>
+                <Text style={styles.revisaoPergunta}>{i + 1}. {p.titulo}</Text>
+                <Text style={styles.revisaoResposta}>
+                  {respostas[p.id] || "❌ Não respondido"}
+                </Text>
+              </View>
+            ))
+          ) : (
+            <View style={styles.perguntaContainer}>
+              {perguntaAtual.tipo === "multipla" ? (
+                <PerguntaAlternativa
+                  pergunta={perguntaAtual.titulo}
+                  opcoes={perguntaAtual.opcoes}
+                  resposta={respostas[perguntaAtual.id] || ""}
+                  onSelect={handleChange}
+                />
               ) : (
-                <TouchableOpacity
-                  style={[styles.botao, styles.botaoProximo]}
-                  onPress={proximaPergunta}
-                >
-                  <Text style={styles.textoBotao}>PRÓXIMO</Text>
-                </TouchableOpacity>
+                <PerguntaDissertativa
+                  pergunta={perguntaAtual.titulo}
+                  resposta={respostas[perguntaAtual.id] || ""}
+                  onChange={handleChange}
+                />
               )}
             </View>
+          )}
+
+          {/* ✅ BOTÕES */}
+          <View style={styles.footerRow}>
+            {modoRevisao ? (
+              <>
+                <TouchableOpacity style={styles.botao} onPress={voltarEdicao}>
+                  <Text style={styles.textoBotao}>EDITAR</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.botaoFinalizar} onPress={confirmarEnvio}>
+                  <Text style={styles.textoBotaoFinalizar}>CONFIRMAR ENVIO</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                {!isFirst && (
+                  <TouchableOpacity style={styles.botao} onPress={perguntaAnterior}>
+                    <Text style={styles.textoBotao}>ANTERIOR</Text>
+                  </TouchableOpacity>
+                )}
+
+                <View style={{ flex: 1 }} />
+
+                {isLast ? (
+                  <TouchableOpacity style={styles.botaoFinalizar} onPress={irParaRevisao}>
+                    <Text style={styles.textoBotaoFinalizar}>REVISAR</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={styles.botao} onPress={proximaPergunta}>
+                    <Text style={styles.textoBotao}>PRÓXIMO</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
           </View>
         </ScrollView>
       </LinearGradient>
@@ -201,69 +228,71 @@ export default function ResponderFormulario() {
 // --------------------------------------------------
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    padding: 20,
-    paddingBottom: 160, // ✅ Espaço real pro botão nunca ficar escondido
-  },
+  scrollContainer: { padding: 20, paddingBottom: 160 },
 
   titulo: {
     fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 40,
+    marginBottom: 30,
     textAlign: "center",
     color: "#2b4c2b",
   },
 
   perguntaContainer: {
     backgroundColor: "#ffffffaa",
-    borderRadius: 5,
+    borderRadius: 8,
     padding: 15,
-    elevation: 1,
+  },
+
+  revisaoCard: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+
+  revisaoPergunta: {
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+
+  revisaoResposta: {
+    color: "#2b4c2b",
   },
 
   footerRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 40,
+    gap: 12,
   },
-
-  col: { flex: 1, justifyContent: "center" },
-  colLeft: { alignItems: "flex-start" },
-  colCenter: { alignItems: "center" },
-  colRight: { alignItems: "flex-end" },
 
   botao: {
     backgroundColor: "#4b7250",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 22,
-    minWidth: 150,
-  },
-
-  textoBotao: {
-    fontWeight: "600",
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 20,
+    minWidth: 140,
   },
 
   botaoFinalizar: {
     backgroundColor: "#007bff",
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    minWidth: 160,
+  },
+
+  textoBotao: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
   },
 
   textoBotaoFinalizar: {
-    fontWeight: "700",
     color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
     textAlign: "center",
-    fontSize: 20,
-  },
-
-  botaoAnterior: {
-    backgroundColor: "#4b7250",
-  },
-
-  botaoProximo: {
-    backgroundColor: "#4b7250",
   },
 });
