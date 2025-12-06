@@ -10,16 +10,21 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
 
 import { db } from "@/firebase/firebaseConfig";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+type FormularioType = {
+  id: string;
+  texto: string;
+  data: string;
+};
 
 export default function ParaResponder() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [formularios, setFormularios] = useState<any[]>([]);
+  const [formularios, setFormularios] = useState<FormularioType[]>([]);
 
   const handleResponder = (idFormulario: string) => {
-    console.log(idFormulario);
     router.push({
       pathname: "/telas/responderFormulario",
       params: { idFormulario },
@@ -28,12 +33,14 @@ export default function ParaResponder() {
 
   useEffect(() => {
     const carregarFormularios = async () => {
-      if (!user) return;
+      if (!user?.username) return;
 
       try {
+        setFormularios([]); // ✅ LIMPA ANTES DE CARREGAR
+
         const usuario = user.username;
 
-        // Buscar IDs dos formulários já respondidos
+        // ✅ 1. Buscar formulários já respondidos
         const qRespondidos = query(
           collection(db, "usuario_formularios_respondidos"),
           where("usuario", "==", usuario)
@@ -41,11 +48,11 @@ export default function ParaResponder() {
 
         const respSnapshot = await getDocs(qRespondidos);
 
-        const idsRespondidos = respSnapshot.docs.map(
-          (doc) => doc.data().id_formulario
+        const idsRespondidos = new Set(
+          respSnapshot.docs.map((doc) => doc.data().id_formulario)
         );
 
-        // Buscar formulários ativos
+        // ✅ 2. Buscar formulários disponíveis
         const qFormularios = query(
           collection(db, "formularios"),
           where("status", "==", true)
@@ -53,12 +60,12 @@ export default function ParaResponder() {
 
         const formsSnapshot = await getDocs(qFormularios);
 
-        const lista: any[] = [];
+        const lista: FormularioType[] = [];
 
         formsSnapshot.forEach((doc) => {
-          const data = doc.data();
+          if (idsRespondidos.has(doc.id)) return; // ✅ ignora já respondidos
 
-          if (idsRespondidos.includes(doc.id)) return;
+          const data = doc.data();
 
           const dataCriacao = data.data_criacao?.toDate
             ? data.data_criacao.toDate().toLocaleDateString("pt-BR")
@@ -71,14 +78,20 @@ export default function ParaResponder() {
           });
         });
 
-        setFormularios(lista);
+        // ✅ REMOVE QUALQUER DUPLICATA POR GARANTIA
+        const listaUnica = lista.filter(
+          (item, index, self) =>
+            index === self.findIndex((f) => f.id === item.id)
+        );
+
+        setFormularios(listaUnica);
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao carregar formulários:", error);
       }
     };
 
     carregarFormularios();
-  }, [user]);
+  }, [user?.username]);
 
   return (
     <View>
@@ -88,8 +101,10 @@ export default function ParaResponder() {
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário para responder" />
         ) : (
-          formularios.map((f, index) => (
-            <View key={`${f.id}-${index}`} style={{ marginTop: 15 }}>
+          formularios.map((f) => (
+            <View key={`form-${f.id}`} style={{ marginTop: 15 }}>
+              {/* ✅ key agora é 100% única */}
+
               <Date data={f.data} />
 
               <Formulario texto={f.texto}>
