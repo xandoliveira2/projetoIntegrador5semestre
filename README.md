@@ -20,7 +20,3 @@ Atualmente, os formulários são aplicados **em papel**, o que dificulta a organ
 ## Objetivo
 O sistema busca **agilizar e digitalizar o processo de coleta de dados**, garantindo maior praticidade para os associados e eficiência para a gestão do programa Vida Mais Itapira.
 
-## Como Contribuir
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seu-usuario/vida-mais-itapira.git
