@@ -14,7 +14,7 @@ const Formulario = ({ texto, children }: Props) => {
 
       <Text 
       style={styles.texto}
-      numberOfLines={1}
+      numberOfLines={2}
       ellipsizeMode='tail'
       
       >{texto}</Text>
@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight:'bold',
     marginLeft:10,
+    width:'60%'
     
   },
 });

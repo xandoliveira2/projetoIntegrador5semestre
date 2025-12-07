@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -149,12 +149,13 @@ export default function ResponderFormulario() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={{ flex: 1 }}>
+        {/* CONTEÚDO SCROLLÁVEL */}
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.titulo}>
             {modoRevisao ? "Revisar Respostas" : "Respondendo Formulário"}
           </Text>
 
-          {/* ✅ TELA DE REVISÃO */}
+          {/* TELA DE REVISÃO */}
           {modoRevisao ? (
             perguntas.map((p, i) => (
               <View key={p.id} style={styles.revisaoCard}>
@@ -182,9 +183,11 @@ export default function ResponderFormulario() {
               )}
             </View>
           )}
+        </ScrollView>
 
-          {/* ✅ BOTÕES */}
-          <View style={styles.footerRow}>
+        {/* FOOTER FIXO */}
+        <View style={styles.footerFixed}>
+          <View style={styles.footerButtons}>
             {modoRevisao ? (
               <>
                 <TouchableOpacity style={styles.botao} onPress={voltarEdicao}>
@@ -203,8 +206,6 @@ export default function ResponderFormulario() {
                   </TouchableOpacity>
                 )}
 
-                <View style={{ flex: 1 }} />
-
                 {isLast ? (
                   <TouchableOpacity style={styles.botaoFinalizar} onPress={irParaRevisao}>
                     <Text style={styles.textoBotaoFinalizar}>REVISAR</Text>
@@ -217,7 +218,7 @@ export default function ResponderFormulario() {
               </>
             )}
           </View>
-        </ScrollView>
+        </View>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
   scrollContainer: { padding: 20, paddingBottom: 160 },
 
   titulo: {
-    fontSize: 22,
+    fontSize: 25,
     fontWeight: "bold",
     marginBottom: 30,
     textAlign: "center",
@@ -260,10 +261,24 @@ const styles = StyleSheet.create({
     color: "#2b4c2b",
   },
 
-  footerRow: {
+  footerFixed: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 15,
+    backgroundColor: "#f3f7f3ee",
     flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 40,
+    borderTopWidth: 1,
+    borderColor: "#bfd5bf",
+  },
+
+  footerButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     gap: 12,
   },
 

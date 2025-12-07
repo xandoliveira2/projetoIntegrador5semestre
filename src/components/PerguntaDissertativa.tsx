@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     padding: 10,
     minHeight: 80,
     textAlignVertical: "top",
-    fontSize:18,
+    fontSize:25,
     
   },
 });

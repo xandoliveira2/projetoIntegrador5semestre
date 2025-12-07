@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   Alert,
-  ScrollView,
-  View,
-  Text,
   Dimensions,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 
 import Date from "@/components/Date";
@@ -18,10 +18,10 @@ import { styles } from "@/styles/IconButtonStyle";
 import {
   collection,
   getDocs,
+  onSnapshot,
   orderBy,
   query,
   where,
-  onSnapshot, // ✅ REALTIME
 } from "firebase/firestore";
 
 import * as FileSystem from "expo-file-system/legacy";
@@ -289,11 +289,15 @@ export default function Finalizado() {
                   <FormButton
                     key={p.id}
                     text={p.texto}
+                    style={{marginBottom:10}}
                     onPress={() => gerarDadosGrafico(p.id)}
                   />
                 ))}
 
-                <FormButton text="Cancelar" onPress={() => setModalGrafico(false)} />
+                <FormButton text="Cancelar" onPress={() => setModalGrafico(false)} 
+                    style={{backgroundColor:'gray'}}
+
+                  />
               </>
             ) : (
               <>
