@@ -255,10 +255,12 @@ const styles = StyleSheet.create({
   revisaoPergunta: {
     fontWeight: "700",
     marginBottom: 6,
+    fontSize:25
   },
 
   revisaoResposta: {
     color: "#2b4c2b",
+    fontSize:20
   },
 
   footerFixed: {
