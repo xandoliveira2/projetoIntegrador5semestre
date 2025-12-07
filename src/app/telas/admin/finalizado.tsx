@@ -22,12 +22,13 @@ import {
   orderBy,
   query,
   where,
+  onSnapshot,
 } from "firebase/firestore";
 
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
-import { BarChart } from "react-native-chart-kit";
+import { PieChart } from "react-native-chart-kit";
 
 type FormularioType = {
   id: string;
@@ -53,11 +54,14 @@ export default function Finalizado() {
   const [modalGrafico, setModalGrafico] = useState(false);
   const [perguntasMultipla, setPerguntasMultipla] = useState<PerguntaType[]>([]);
   const [formularioSelecionado, setFormularioSelecionado] = useState("");
-
-  const [dadosGrafico, setDadosGrafico] = useState<any>(null);
+const [larguraModal, setLarguraModal] = useState(0);
+  const [dadosGrafico, setDadosGrafico] = useState<any[]>([]);
   const [tituloGrafico, setTituloGrafico] = useState("");
+  const [legendaCustom, setLegendaCustom] = useState<
+    { texto: string; cor: string }[]
+  >([]);
 
-  // ✅ AGORA EM TEMPO REAL (resolve seu problema!)
+  // ✅ TEMPO REAL DOS FINALIZADOS
   useEffect(() => {
     const q = query(
       collection(db, "formularios"),
@@ -155,81 +159,88 @@ export default function Finalizado() {
     }
   };
 
-  // ✅ SELEÇÃO DE PERGUNTA
+  // ✅ ABRIR SELEÇÃO
   const abrirSelecaoPergunta = async (idFormulario: string) => {
-    try {
-      setFormularioSelecionado(idFormulario);
-      setDadosGrafico(null);
+    setFormularioSelecionado(idFormulario);
+    setDadosGrafico([]);
+    setLegendaCustom([]);
 
-      const q = query(
-        collection(db, "formularios_pergunta"),
-        where("formulario_pai", "==", idFormulario),
-        where("tipo_pergunta", "==", "multipla"),
-        orderBy("ordem")
-      );
+    const q = query(
+      collection(db, "formularios_pergunta"),
+      where("formulario_pai", "==", idFormulario),
+      where("tipo_pergunta", "==", "multipla"),
+      orderBy("ordem")
+    );
 
-      const snapshot = await getDocs(q);
-      const lista: PerguntaType[] = [];
+    const snapshot = await getDocs(q);
+    const lista: PerguntaType[] = [];
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        lista.push({
-          id: doc.id,
-          texto: data.pergunta,
-        });
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      lista.push({
+        id: doc.id,
+        texto: data.pergunta,
       });
+    });
 
-      if (lista.length === 0) {
-        Alert.alert("Aviso", "Esse formulário não possui perguntas múltiplas.");
-        return;
-      }
-
-      setPerguntasMultipla(lista);
-      setModalGrafico(true);
-    } catch (error) {
-      console.error("Erro ao buscar perguntas:", error);
+    if (lista.length === 0) {
+      Alert.alert("Aviso", "Esse formulário não possui perguntas múltiplas.");
+      return;
     }
+
+    setPerguntasMultipla(lista);
+    setModalGrafico(true);
   };
 
   // ✅ GERAR GRÁFICO
   const gerarDadosGrafico = async (idPergunta: string) => {
-    try {
-      const q = query(
-        collection(db, "usuario_formularios_respondidos"),
-        where("id_formulario", "==", formularioSelecionado),
-        where("id_pergunta", "==", idPergunta)
-      );
+    const q = query(
+      collection(db, "usuario_formularios_respondidos"),
+      where("id_formulario", "==", formularioSelecionado),
+      where("id_pergunta", "==", idPergunta)
+    );
 
-      const snapshot = await getDocs(q);
-      const contagem: Record<string, number> = {};
+    const snapshot = await getDocs(q);
 
-      snapshot.forEach((doc) => {
-        const { respostas } = doc.data();
-        contagem[respostas] = (contagem[respostas] || 0) + 1;
+    const contagem: Record<string, number> = {};
+    let total = 0;
+
+    snapshot.forEach((doc) => {
+      const { respostas } = doc.data();
+      contagem[respostas] = (contagem[respostas] || 0) + 1;
+      total++;
+    });
+
+    const cores = ["#2563EB", "#16A34A", "#E11D48", "#CA8A04", "#9333EA"];
+    const pizzaData: any[] = [];
+    const legenda: { texto: string; cor: string }[] = [];
+
+    Object.entries(contagem).forEach(([resposta, valor], index) => {
+      const porcentagem = ((valor / total) * 100).toFixed(0);
+      const cor = cores[index % cores.length];
+
+      pizzaData.push({
+        name: resposta,
+        population: valor,
+        color: cor,
       });
 
-      const labels = Object.keys(contagem);
-      const valores = Object.values(contagem);
-
-      setTituloGrafico(
-        perguntasMultipla.find((p) => p.id === idPergunta)?.texto || "Gráfico"
-      );
-
-      setDadosGrafico({
-        labels,
-        datasets: [{ data: valores }],
+      legenda.push({
+        texto: `${resposta} ( ${valor}, ${porcentagem}% )`,
+        cor,
       });
-    } catch (error) {
-      console.error("Erro ao gerar gráfico:", error);
-    }
+    });
+
+    setTituloGrafico(
+      perguntasMultipla.find((p) => p.id === idPergunta)?.texto || "Gráfico"
+    );
+    setDadosGrafico(pizzaData);
+    setLegendaCustom(legenda);
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView
-        style={{ padding: 20 }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
+      <ScrollView style={{ padding: 20 }} contentContainerStyle={{ paddingBottom: 100 }}>
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário finalizado" />
         ) : (
@@ -267,75 +278,143 @@ export default function Finalizado() {
         )}
       </ScrollView>
 
-      {/* ✅ MODAL DO GRÁFICO (SEU ORIGINAL, INTACTO) */}
-      {modalGrafico && (
-        <View
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.6)",
-            justifyContent: "center",
-            padding: 20,
-          }}
-        >
-          <View style={{ backgroundColor: "white", borderRadius: 10, padding: 20 }}>
-            {!dadosGrafico ? (
-              <>
-                <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
-                  Selecione uma pergunta:
-                </Text>
+     {/* ✅ MODAL GRÁFICO */}
+{modalGrafico && (
+  <View
+    style={{
+      position: "absolute",
+      inset: 0,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
+    }}
+  >
+<View
+  onLayout={(e) => {
+    const largura = e.nativeEvent.layout.width;
+    setLarguraModal(largura);
+  }}
+  style={{
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    width: "100%",
+    maxHeight: "90%",
+    alignItems: "center",
+  }}
+>
+      {!dadosGrafico.length ? (
+        <>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              marginBottom: 10,
+              textAlign: "center",
+            }}
+          >
+            Selecione uma pergunta:
+          </Text>
 
-                {perguntasMultipla.map((p) => (
-                  <FormButton
-                    key={p.id}
-                    text={p.texto}
-                    style={{marginBottom:10}}
-                    onPress={() => gerarDadosGrafico(p.id)}
-                  />
-                ))}
+          <ScrollView
+            style={{ width: "100%" }}
+            contentContainerStyle={{ paddingBottom: 12 }}
+          >
+            {perguntasMultipla.map((p) => (
+              <FormButton key={p.id} text={p.texto} onPress={() => gerarDadosGrafico(p.id)} />
+            ))}
+          </ScrollView>
 
-                <FormButton text="Cancelar" onPress={() => setModalGrafico(false)} 
-                    style={{backgroundColor:'gray'}}
+          <FormButton text="Cancelar" onPress={() => setModalGrafico(false)} />
+        </>
+      ) : (
+        <>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              marginBottom: 10,
+              textAlign: "center",
+            }}
+          >
+            {tituloGrafico}
+          </Text>
 
-                  />
-              </>
-            ) : (
-              <>
-                <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
-                  {tituloGrafico}
-                </Text>
 
-                <BarChart
-                  data={dadosGrafico}
-                  width={Dimensions.get("window").width - 60}
-                  height={280}
-                  fromZero
-                  showValuesOnTopOfBars
-                  withInnerLines={false}
-                  segments={Math.max(...dadosGrafico.datasets[0].data)}
-                  chartConfig={{
-                    backgroundGradientFrom: "#ffffff",
-                    backgroundGradientTo: "#ffffff",
-                    decimalPlaces: 0,
-                    barPercentage: 0.6,
-                    color: () => "#2563EB",
-                    labelColor: () => "#333",
+
+{dadosGrafico.length > 0 && (
+  <View
+    style={{
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      marginVertical: 10,
+      marginLeft : 20
+    }}
+  >
+<PieChart
+  data={dadosGrafico}
+  width={Math.min(larguraModal, 300)}  // largura do gráfico
+  height={Math.min(larguraModal, 300)} // altura do gráfico
+  chartConfig={{
+    backgroundGradientFrom: "#fff",
+    backgroundGradientTo: "#fff",
+    color: () => "#000",
+  }}
+  accessor="population"
+  backgroundColor="transparent"
+  hasLegend={false}
+  paddingLeft={`(${larguraModal}-${Math.min(larguraModal,300)})/2`} // metade da largura do gráfico
+/>
+  </View>
+)}
+
+
+
+
+          {/* Legenda rolável — não limita a altura do modal, apenas rola quando necessário */}
+          <ScrollView
+            style={{ width: "100%", maxHeight: 180, marginTop: 15 }}
+            contentContainerStyle={{ alignItems: "center", paddingBottom: 8 }}
+          >
+            {legendaCustom.map((item, index) => (
+              <View
+                key={index}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <View
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: 6,
+                    backgroundColor: item.cor,
+                    marginRight: 8,
                   }}
-                  style={{ borderRadius: 16, marginVertical: 10 }}
                 />
+                <Text style={{ fontSize: 14, textAlign: "center" }}>{item.texto}</Text>
+              </View>
+            ))}
+          </ScrollView>
 
-                <FormButton
-                  text="Fechar"
-                  onPress={() => {
-                    setModalGrafico(false);
-                    setDadosGrafico(null);
-                  }}
-                />
-              </>
-            )}
-          </View>
-        </View>
+          <FormButton
+            text="Fechar"
+            onPress={() => {
+              setModalGrafico(false);
+              setDadosGrafico([]);
+              setLegendaCustom([]);
+            }}
+          />
+        </>
       )}
+    </View>
+  </View>
+)}
     </View>
   );
 }
