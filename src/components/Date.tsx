@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 
   },
   texto: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'black',
   },
 });

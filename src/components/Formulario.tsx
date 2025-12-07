@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   texto: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight:'bold',
     marginLeft:10,
     width:'60%'

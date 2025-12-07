@@ -85,7 +85,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                             style={{
                                 color: isFocused ? "#fff" : "#000",
                                 fontWeight: "bold",
-                                fontSize:16
+                                fontSize:18
                             }}
                         >
                             {label}
