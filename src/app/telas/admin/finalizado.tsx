@@ -22,7 +22,6 @@ import {
   orderBy,
   query,
   where,
-  onSnapshot,
 } from "firebase/firestore";
 
 import * as FileSystem from "expo-file-system/legacy";
@@ -365,7 +364,7 @@ const [larguraModal, setLarguraModal] = useState(0);
   accessor="population"
   backgroundColor="transparent"
   hasLegend={false}
-  paddingLeft={`(${larguraModal}-${Math.min(larguraModal,300)})/2`} // metade da largura do gráfico
+  paddingLeft={`(${larguraModal}-${Math.max(larguraModal,300)})/2`} // metade da largura do gráfico
 />
   </View>
 )}
