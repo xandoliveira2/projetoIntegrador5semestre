@@ -364,7 +364,7 @@ const [larguraModal, setLarguraModal] = useState(0);
   accessor="population"
   backgroundColor="transparent"
   hasLegend={false}
-  paddingLeft={`(${larguraModal}-${Math.max(larguraModal,300)})/2`} // metade da largura do gráfico
+  paddingLeft={'65'} // metade da largura do gráfico
 />
   </View>
 )}
