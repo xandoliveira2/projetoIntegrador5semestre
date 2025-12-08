@@ -1,13 +1,13 @@
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Image,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function Layout() {
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   /* 🔙 BOTÃO DE VOLTAR ACIMA DE TUDO */
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 50,
     left: 10,
     zIndex: 99999,
     elevation: 50,
