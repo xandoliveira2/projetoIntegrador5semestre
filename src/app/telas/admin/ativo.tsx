@@ -204,7 +204,7 @@ export default function Criar() {
                     <FormButton
                       style={styles.container}
                       icon={require("@/../assets/icons/engrenagem_branco.png")}
-                      iconSize={29}
+                      iconSize={30}
                       onPress={() => {}}
                     />
                   }

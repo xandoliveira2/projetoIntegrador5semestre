@@ -1,34 +1,29 @@
-import { db } from "../../../firebase/firebaseConfig";
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  updateDoc,
-  doc,
-  writeBatch,
-} from "firebase/firestore";
-
 import FormButton from "@/components/FormButton";
 import OptionsMenu from "@/components/OptionsMenu";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+  where,
+  writeBatch
+} from "firebase/firestore";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Image,
   Modal,
-  Platform,
   Pressable,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { styles } from "@/styles/IconButtonStyle";
+import { db } from "../../../firebase/firebaseConfig";
 
 export default function FormularioTela() {
   const router = useRouter();
@@ -225,7 +220,6 @@ export default function FormularioTela() {
                 <Ionicons name="trash-outline" size={22} color="red" />
               </TouchableOpacity>
             </View>
-
             <TextInput
               placeholder="Pergunta"
               value={pergunta.titulo}
@@ -242,6 +236,7 @@ export default function FormularioTela() {
             {pergunta.tipo === "alternativa" &&
               pergunta.opcoes.map((op: string, i: number) => (
                 <View key={i} style={{ flexDirection: "row" }}>
+                  <Text style={{textAlignVertical:'center',}}>{i+1} - </Text>
                   <TextInput
                     value={op}
                     onChangeText={(t) => atualizarOpcao(pergunta.id, i, t)}
@@ -252,9 +247,13 @@ export default function FormularioTela() {
                       borderRadius: 6,
                       padding: 8,
                       marginVertical: 4,
+                      minWidth:'80%'
                     }}
                   />
-                  <TouchableOpacity onPress={() => removerOpcao(pergunta.id, i)}>
+
+                  <TouchableOpacity onPress={() => removerOpcao(pergunta.id, i)}
+                    style={{flex:1, justifyContent:'center', marginLeft:5}}
+                    >
                     <Ionicons name="close-circle" size={22} color="red" />
                   </TouchableOpacity>
                 </View>
