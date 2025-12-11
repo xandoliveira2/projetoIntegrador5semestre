@@ -1,22 +1,38 @@
 import React from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View, ViewStyle } from "react-native";
 
 interface Props {
   pergunta: string;
   resposta: string;
   onChange: (valor: string) => void;
+
+  // NOVAS PROPS
+  fontSizePergunta?: number;
+  fontSizeResposta?: number;
+  containerStyle?: ViewStyle;
 }
 
-const PerguntaDissertativa = ({ pergunta, resposta, onChange }: Props) => {
+const PerguntaDissertativa = ({
+  pergunta,
+  resposta,
+  onChange,
+  fontSizePergunta = 23,
+  fontSizeResposta = 25,
+  containerStyle,
+}: Props) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.pergunta}>{pergunta}</Text>
+    <View style={[styles.container, containerStyle]}>
+      <Text style={[styles.pergunta, { fontSize: fontSizePergunta }]}>
+        {pergunta}
+      </Text>
+
       <TextInput
-        style={styles.input}
+        style={[styles.input, { fontSize: fontSizeResposta }]}
         value={resposta}
         onChangeText={onChange}
         multiline
         placeholder="Digite sua resposta..."
+        placeholderTextColor="#999"
       />
     </View>
   );
@@ -28,7 +44,6 @@ const styles = StyleSheet.create({
   },
   pergunta: {
     fontWeight: "bold",
-    fontSize: 23,
     marginBottom: 15,
   },
   input: {
@@ -38,8 +53,6 @@ const styles = StyleSheet.create({
     padding: 10,
     minHeight: 80,
     textAlignVertical: "top",
-    fontSize:25,
-    
   },
 });
 

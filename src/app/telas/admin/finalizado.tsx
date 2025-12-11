@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import {
   Alert,
-  Dimensions,
   ScrollView,
   Text,
-  View,
+  View
 } from "react-native";
 
 import Date from "@/components/Date";
@@ -321,7 +320,7 @@ const [larguraModal, setLarguraModal] = useState(0);
             contentContainerStyle={{ paddingBottom: 12 }}
           >
             {perguntasMultipla.map((p) => (
-              <FormButton key={p.id} text={p.texto} onPress={() => gerarDadosGrafico(p.id)} />
+              <FormButton style={{marginBottom:10}} key={p.id} text={p.texto} onPress={() => gerarDadosGrafico(p.id)} />
             ))}
           </ScrollView>
 

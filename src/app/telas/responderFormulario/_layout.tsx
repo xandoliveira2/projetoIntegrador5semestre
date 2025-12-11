@@ -1,24 +1,26 @@
-import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
-import {
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FontSizeProvider } from "@/components/FontSizeProvider";
+import { Stack } from "expo-router";
 
 export default function Layout() {
   return (
-    <Stack
-      screenOptions={{
-        header: () => <CustomNavbar />,
-      }}
-    />
+    <FontSizeProvider>
+      <Stack
+        screenOptions={{
+          header: () => <CustomNavbar />,
+        }}
+      />
+    </FontSizeProvider>
   );
 }
+
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from "react-native";
 
 function CustomNavbar() {
   const router = useRouter();
@@ -26,13 +28,11 @@ function CustomNavbar() {
 
   function confirmLogout() {
     setModalVisible(false);
-    router.replace("/"); // Volta para tela de login
+    router.replace("/");
   }
 
   return (
     <View style={styles.navbarContainer}>
-
-      {/* BOTÃO DE VOLTAR — FICA EM CIMA DE TUDO */}
       <TouchableOpacity
         onPress={() => router.back()}
         style={styles.backButton}
@@ -43,12 +43,10 @@ function CustomNavbar() {
           resizeMode="contain"
         />
       </TouchableOpacity>
-
-      {/* NAVBAR NORMAL */}
+{/* 
       <View style={styles.navbar}>
         <Text style={styles.title}></Text>
 
-        {/* Botão de logout */}
         <TouchableOpacity
           style={styles.exitButton}
           onPress={() => setModalVisible(true)}
@@ -61,11 +59,11 @@ function CustomNavbar() {
         </TouchableOpacity>
       </View>
 
-      {/* Modal de confirmação */}
       <Modal animationType="fade" transparent visible={modalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Confirmar Logout</Text>
+
             <Text style={styles.modalMessage}>
               Tem certeza que deseja sair da conta?
             </Text>
@@ -87,31 +85,26 @@ function CustomNavbar() {
             </View>
           </View>
         </View>
-      </Modal>
-
+      </Modal> */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   navbarContainer: {
-    height: 100,
+    height: 0,
     backgroundColor: "white",
     justifyContent: "center",
   },
-
   navbar: {
     height: 100,
     justifyContent: "center",
-    paddingHorizontal: 50, // deixa espaço para o back button
+    paddingHorizontal: 50,
   },
-
   title: {
     fontSize: 20,
     fontWeight: "bold",
   },
-
-  /* 🔙 BOTÃO DE VOLTAR ACIMA DE TUDO */
   backButton: {
     position: "absolute",
     top: 50,
@@ -127,7 +120,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   exitButton: {
     position: "absolute",
     right: 15,
@@ -138,27 +130,22 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 6,
   },
-
   exitIcon: {
     width: 22,
     height: 22,
   },
-
-  /* Modal */
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
-
   modalBox: {
     width: "80%",
     backgroundColor: "white",
@@ -166,25 +153,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 10,
   },
-
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
   },
-
   modalMessage: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
   },
-
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
-
   button: {
     flex: 1,
     padding: 12,
@@ -192,15 +175,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     alignItems: "center",
   },
-
   cancelButton: {
     backgroundColor: "#ccc",
   },
-
   confirmButton: {
     backgroundColor: "#d9534f",
   },
-
   buttonText: {
     color: "white",
     fontWeight: "bold",

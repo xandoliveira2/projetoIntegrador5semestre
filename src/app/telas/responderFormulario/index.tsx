@@ -1,3 +1,4 @@
+import FontSizeButtons from "@/components/FontSizeButtons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -20,18 +21,46 @@ import PerguntaAlternativa from "@/components/PerguntaAlternativa";
 import PerguntaDissertativa from "@/components/PerguntaDissertativa";
 import { useAuth } from "@/context/AuthContext";
 
+// ⬅️ IMPORTANTE: agora pegamos increase e decrease também
+import { useFontSize } from "@/components/FontSizeProvider";
+
 export default function ResponderFormulario() {
   const { user } = useAuth();
   const { idFormulario } = useLocalSearchParams();
   const router = useRouter();
 
+  // ⬅️ PEGAR TUDO DO CONTEXTO
+  const { fontSize, increase, decrease } = useFontSize();
+
   const [loading, setLoading] = useState(true);
   const [perguntas, setPerguntas] = useState<any[]>([]);
   const [indice, setIndice] = useState(0);
   const [respostas, setRespostas] = useState<{ [key: string]: string }>({});
-  const [modoRevisao, setModoRevisao] = useState(false); // ✅ NOVO ESTADO
+  const [modoRevisao, setModoRevisao] = useState(false);
 
-  // ✅ BUSCAR PERGUNTAS
+  // ---------------------------------------------------------
+  // LIMITES PERSONALIZADOS DESSA TELA
+  // ---------------------------------------------------------
+  const limits = {
+    pergunta: { min: 20, max: 34 },
+    resposta: { min: 18, max: 30 },
+    opcao: { min: 16, max: 26 },
+    opcaoSel: { min: 18, max: 32 },
+  };
+
+  const clamp = (size: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, size));
+
+  const fontSizes = {
+    pergunta: clamp(fontSize, limits.pergunta.min, limits.pergunta.max),
+    resposta: clamp(fontSize, limits.resposta.min, limits.resposta.max),
+    opcao: clamp(fontSize, limits.opcao.min, limits.opcao.max),
+    opcaoSel: clamp(fontSize, limits.opcaoSel.min, limits.opcaoSel.max),
+  };
+
+  // ---------------------------------------------------------
+  // BUSCAR PERGUNTAS
+  // ---------------------------------------------------------
   useEffect(() => {
     if (!idFormulario) return;
 
@@ -89,7 +118,7 @@ export default function ResponderFormulario() {
 
   const perguntaAtual = perguntas[indice];
 
-  // ✅ ATUALIZA SEM BUG DE TELA
+  // ATUALIZA RESPOSTA
   const handleChange = (valor: string) => {
     setRespostas((prev) => ({
       ...prev,
@@ -105,12 +134,10 @@ export default function ResponderFormulario() {
     if (indice > 0) setIndice((prev) => prev - 1);
   };
 
-  // ✅ AGORA FINALIZAR VIRA REVISÃO
   const irParaRevisao = () => {
     setModoRevisao(true);
   };
 
-  // ✅ ENVIO REAL SÓ AQUI
   const confirmarEnvio = async () => {
     try {
       const idUsuario = user?.username ?? "usuario_teste";
@@ -137,7 +164,6 @@ export default function ResponderFormulario() {
     }
   };
 
-  // ✅ VOLTAR DA REVISÃO PRA EDIÇÃO
   const voltarEdicao = () => {
     setModoRevisao(false);
     setIndice(0);
@@ -148,14 +174,18 @@ export default function ResponderFormulario() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <LinearGradient colors={["#f3f7f3", "#dbe7db"]} style={{ flex: 1 }}>
-        {/* CONTEÚDO SCROLLÁVEL */}
+
+      {/* ⬅️ AQUI AJUSTADO PARA PASSAR increase/decrease */}
+      <View style={{ marginLeft: "73%", marginBottom: "2%" }}>
+        <FontSizeButtons  />
+      </View>
+
+      <LinearGradient colors={["#ffffffff", "#ffffffff"]} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.titulo}>
             {modoRevisao ? "Revisar Respostas" : "Respondendo Formulário"}
           </Text>
 
-          {/* TELA DE REVISÃO */}
           {modoRevisao ? (
             perguntas.map((p, i) => (
               <View key={p.id} style={styles.revisaoCard}>
@@ -173,19 +203,25 @@ export default function ResponderFormulario() {
                   opcoes={perguntaAtual.opcoes}
                   resposta={respostas[perguntaAtual.id] || ""}
                   onSelect={handleChange}
+
+                  fontSizePergunta={fontSizes.pergunta}
+                  fontSizeOpcao={fontSizes.opcao}
+                  fontSizeOpcaoSelecionada={fontSizes.opcaoSel}
                 />
               ) : (
                 <PerguntaDissertativa
                   pergunta={perguntaAtual.titulo}
                   resposta={respostas[perguntaAtual.id] || ""}
                   onChange={handleChange}
+
+                  fontSizePergunta={fontSizes.pergunta}
+                  fontSizeResposta={fontSizes.resposta}
                 />
               )}
             </View>
           )}
         </ScrollView>
 
-        {/* FOOTER FIXO */}
         <View style={styles.footerFixed}>
           <View style={styles.footerButtons}>
             {modoRevisao ? (
@@ -224,10 +260,6 @@ export default function ResponderFormulario() {
   );
 }
 
-// --------------------------------------------------
-// STYLES
-// --------------------------------------------------
-
 const styles = StyleSheet.create({
   scrollContainer: { padding: 20, paddingBottom: 160 },
 
@@ -255,12 +287,12 @@ const styles = StyleSheet.create({
   revisaoPergunta: {
     fontWeight: "700",
     marginBottom: 6,
-    fontSize:25
+    fontSize: 25
   },
 
   revisaoResposta: {
     color: "#2b4c2b",
-    fontSize:20
+    fontSize: 20
   },
 
   footerFixed: {

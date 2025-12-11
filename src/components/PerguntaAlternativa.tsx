@@ -1,27 +1,55 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface Props {
   pergunta: string;
   opcoes: string[];
   resposta: string | null;
   onSelect: (valor: string) => void;
+  containerStyle?: ViewStyle;
+
+  // NOVAS PROPS
+  fontSizePergunta?: number;
+  fontSizeOpcao?: number;
+  fontSizeOpcaoSelecionada?: number;
 }
 
-const PerguntaAlternativa = ({ pergunta, opcoes, resposta, onSelect }: Props) => {
+const PerguntaAlternativa = ({
+  pergunta,
+  opcoes,
+  resposta,
+  onSelect,
+  containerStyle,
+  fontSizePergunta = 23,
+  fontSizeOpcao = 18,
+  fontSizeOpcaoSelecionada = 18,
+}: Props) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.pergunta}>{pergunta}</Text>
+    <View style={[styles.container, containerStyle]}>
+      <Text style={[styles.pergunta, { fontSize: fontSizePergunta }]}>
+        {pergunta}
+      </Text>
 
       {opcoes.map((opcao, index) => {
         const selecionado = resposta === opcao;
+
         return (
           <TouchableOpacity
             key={`${opcao}-${index}`}
             style={[styles.opcao, selecionado && styles.opcaoSelecionada]}
             onPress={() => onSelect(opcao)}
           >
-            <Text style={[styles.textoOpcao, selecionado && styles.textoSelecionado]}>
+            <Text
+              style={[
+                styles.textoOpcao,
+                {
+                  fontSize: selecionado
+                    ? fontSizeOpcaoSelecionada
+                    : fontSizeOpcao,
+                },
+                selecionado && styles.textoSelecionado,
+              ]}
+            >
               {opcao}
             </Text>
           </TouchableOpacity>
@@ -37,7 +65,6 @@ const styles = StyleSheet.create({
   },
   pergunta: {
     fontWeight: "bold",
-    fontSize: 23,
     marginBottom: 15,
   },
   opcao: {
@@ -52,9 +79,7 @@ const styles = StyleSheet.create({
     borderColor: "#5b5fc7",
     borderWidth: 2,
   },
-  textoOpcao: {
-    fontSize: 18,
-  },
+  textoOpcao: {},
   textoSelecionado: {
     fontWeight: "bold",
   },
