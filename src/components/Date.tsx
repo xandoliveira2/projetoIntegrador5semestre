@@ -4,23 +4,23 @@ import { StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   data: string;
+  fontSize?: number; // 🟢 Novo prop opcional
 }
 
-const Date: React.FC<Props> = ({ data }) => {
+const Date: React.FC<Props> = ({ data, fontSize = 16 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.texto}>{data}</Text>
+      <Text style={[styles.texto, { fontSize }]}>{data}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex:1,
-
+    flex: 1,
   },
   texto: {
-    fontSize: 16,
+    fontSize: 16, // padrão, mas será sobrescrito caso o usuário envie outro
     color: 'black',
   },
 });

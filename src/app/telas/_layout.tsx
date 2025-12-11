@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: "bold",
   },
 
@@ -131,14 +131,14 @@ const styles = StyleSheet.create({
   },
 
   modalTitle: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
   },
 
   modalMessage: {
-    fontSize: 16,
+    fontSize: 17,
     textAlign: "center",
     marginBottom: 20,
   },
@@ -167,5 +167,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize:22
   },
 });

@@ -81,11 +81,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   iconOnlyContainer: {
-    borderRadius: 50,          // botão redondo
-    width: 50,                 // tamanho padrão
-    height: 50,
-    paddingHorizontal: 0,      // remove padding lateral
-    paddingVertical: 0,
+    width: 10,                 // tamanho padrão
+    height: -10,
+
   },
   content: {
     flexDirection: 'row',
@@ -95,8 +93,6 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 20,
-    marginRight: 8,
-    resizeMode: 'contain',
   },
   text: {
     color: '#FFFFFF',

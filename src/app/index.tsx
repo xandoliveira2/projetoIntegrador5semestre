@@ -2,8 +2,16 @@ import { useAuth } from "@/context/AuthContext";
 import { db } from "@/firebase/firebaseConfig";
 import { useRouter } from 'expo-router';
 import { collection, getDocs, query, where } from "firebase/firestore";
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Alert, Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet, Text, TextInput,
+  TouchableOpacity
+} from 'react-native';
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -11,9 +19,18 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  const scrollRef = useRef<ScrollView | null>(null);
+
+  useEffect(() => {
+    const hide = Keyboard.addListener("keyboardDidHide", () => {
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+    });
+
+    return () => hide.remove();
+  }, []);
+
   const handleLogin = async () => {
     try {
-      // 1️⃣ Buscar usuário pelo campo "usuario"
       const q = query(
         collection(db, "user"),
         where("usuario", "==", username)
@@ -26,17 +43,14 @@ export default function Login() {
         return;
       }
 
-      // Firestore pode retornar mais de 1, mas pegamos só o primeiro
       const userDoc = querySnapshot.docs[0];
       const userData = userDoc.data();
 
-      // 2️⃣ Verificar senha
       if (password !== userData.senha) {
         Alert.alert("Erro", "Senha incorreta!");
         return;
       }
 
-      // 3️⃣ Checar se é administrador
       const isAdmin = userData.administrador === true;
 
       if (isAdmin) {
@@ -56,31 +70,51 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Usuário"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior="padding"    // 🟢 evita a barra cinza
+      >
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Image 
+            source={require('@/../assets/images/logo.png')}
+            style={{ width: 270, height: 270, marginBottom: 70 }}
+          />
+
+          <Text style={styles.title}>Login</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Usuário"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Senha"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Entrar</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff'
@@ -96,19 +130,20 @@ const styles = StyleSheet.create({
     width: '80%',
     padding: 10,
     marginVertical: 8,
-    fontSize:20,
+    fontSize: 20,
   },
   button: {
     backgroundColor: 'orange',
     padding: 12,
     borderRadius: 8,
-    marginTop: 10,
-    width: '80%'
+    marginTop: 20,
+    width: '80%',
+    marginBottom: 60
   },
   buttonText: {
     color: '#fff',
     fontSize: 26,
     textAlign: 'center',
-    fontWeight:'bold'
+    fontWeight: 'bold'
   },
 });

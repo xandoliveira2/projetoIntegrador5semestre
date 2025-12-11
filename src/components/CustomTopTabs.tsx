@@ -11,9 +11,10 @@ interface TabItem {
 
 interface CustomTopTabsProps {
     tabs: TabItem[];
+    fontSize?: number; // 🟢 Novo prop
 }
 
-export default function CustomTopTabs({ tabs }: CustomTopTabsProps) {
+export default function CustomTopTabs({ tabs, fontSize = 18 }: CustomTopTabsProps) {
     return (
         <Tab.Navigator
             screenOptions={{
@@ -21,7 +22,7 @@ export default function CustomTopTabs({ tabs }: CustomTopTabsProps) {
                 animationEnabled: true,
                 tabBarShowLabel: false,
             }}
-            tabBar={(props) => <CustomTabBar {...props} />}
+            tabBar={(props) => <CustomTabBar {...props} fontSize={fontSize} />} // 🟢 Passando fontSize
         >
             {tabs.map((tab) => (
                 <Tab.Screen key={tab.name} name={tab.name} component={tab.component} />
@@ -30,13 +31,13 @@ export default function CustomTopTabs({ tabs }: CustomTopTabsProps) {
     );
 }
 
-function CustomTabBar({ state, descriptors, navigation }: any) {
+function CustomTabBar({ state, descriptors, navigation, fontSize }: any) {
     return (
         <View
             style={{
                 flexDirection: "row",
                 justifyContent: "center",
-                gap:30,
+                gap: 30,
                 backgroundColor: "#f5f5f5",
                 paddingVertical: 10,
             }}
@@ -74,7 +75,6 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                             borderRadius: 20,
                             elevation: isFocused ? 2 : 0,
 
-                            // iOS
                             shadowColor: "#000",
                             shadowOffset: { width: 0, height: 4 },
                             shadowOpacity: 0.1,
@@ -85,7 +85,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                             style={{
                                 color: isFocused ? "#fff" : "#000",
                                 fontWeight: "bold",
-                                fontSize:18
+                                fontSize: fontSize, // 🟢 Aplicando fontSize vindo do prop
                             }}
                         >
                             {label}

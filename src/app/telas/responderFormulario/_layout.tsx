@@ -39,7 +39,7 @@ function CustomNavbar() {
       >
         <Image
           source={require("@/../assets/icons/seta_esquerda.png")}
-          style={{ width: 20, height: 20 }}
+          style={{ width: 40, height: 40 }}
           resizeMode="contain"
         />
       </TouchableOpacity>

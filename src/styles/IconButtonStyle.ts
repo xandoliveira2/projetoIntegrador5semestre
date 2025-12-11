@@ -8,6 +8,7 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 0,
         height: '100%',
         width: 55,
+        maxHeight:55,
         borderRadius: 0,
         backgroundColor: 'orange',
 

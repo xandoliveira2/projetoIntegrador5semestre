@@ -5,14 +5,49 @@ import { ScrollView, View } from "react-native";
 
 import Date from "@/components/Date";
 import EmptyListMessage from "@/components/EmptyListMessage";
+import FontSizeButtons from "@/components/FontSizeButtons";
+import { useFontSize } from "@/components/FontSizeProvider";
 import Formulario from "@/components/Formulario";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Respondidos() {
   const { user } = useAuth();
+  const { fontSize, setBounds, increase, decrease } = useFontSize();
+
   const [formularios, setFormularios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // -------------------------------
+  //  🔤 LIMITES DE TAMANHO DE FONTE
+  // -------------------------------
+  const limits = {
+    titulo: { min: 18, max: 30 }, // Formulario (texto)
+    data: { min: 12, max: 30 },   // Date (data)
+  };
+
+  // define limites globais no provider
+  useEffect(() => {
+    const providerMin = Math.max(limits.titulo.min, limits.data.min);
+    const providerMax = Math.min(limits.titulo.max, limits.data.max);
+
+    if (providerMin > providerMax) {
+      setBounds(14, 32);
+    } else {
+      setBounds(providerMin, providerMax);
+    }
+  }, []);
+
+  const clamp = (size: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, size));
+
+  const fontSizes = {
+    data: clamp(fontSize, limits.data.min, limits.data.max),
+    titulo: clamp(fontSize, limits.titulo.min, limits.titulo.max),
+  };
+
+  // -------------------------------
+  //  🔍 CARREGAR FORMULÁRIOS RESPONDIDOS
+  // -------------------------------
   useEffect(() => {
     if (!user?.username) return;
 
@@ -26,15 +61,12 @@ export default function Respondidos() {
         );
 
         const snapshot = await getDocs(q);
-
-        // ✅ 1. AGRUPAR POR FORMULÁRIO SEM DUPLICAR
         const mapa = new Map<string, any>();
 
         for (const resposta of snapshot.docs) {
           const dados = resposta.data();
           const idFormulario = dados.id_formulario;
 
-          // ✅ Se já existe no mapa, IGNORA
           if (mapa.has(idFormulario)) continue;
 
           const formRef = doc(db, "formularios", idFormulario);
@@ -54,7 +86,6 @@ export default function Respondidos() {
           }
         }
 
-        // ✅ 2. CONVERTE O MAPA EM ARRAY
         setFormularios(Array.from(mapa.values()));
       } catch (err) {
         console.log("Erro ao carregar respondidos:", err);
@@ -66,6 +97,9 @@ export default function Respondidos() {
     carregarRespondidos();
   }, [user?.username]);
 
+  // -------------------------------
+  //  📌 RENDER
+  // -------------------------------
   if (loading) {
     return (
       <View style={{ padding: 20 }}>
@@ -76,6 +110,11 @@ export default function Respondidos() {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* ------------------ BOTÕES DE FONT SIZE ------------------ */}
+      <View style={{ marginLeft: "73%", marginBottom: "2%" }}>
+        <FontSizeButtons onIncrease={increase} onDecrease={decrease} />
+      </View>
+
       <ScrollView
         style={{ padding: 20 }}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -85,8 +124,11 @@ export default function Respondidos() {
         ) : (
           formularios.map((f) => (
             <View key={f.id} style={{ marginTop: 15 }}>
-              <Date data={f.data} />
-              <Formulario texto={f.texto} />
+              {/* 🔤 Fonte da data controlada pelo provider */}
+              <Date data={f.data} fontSize={fontSizes.data} />
+
+              {/* 🔤 Fonte do titulo do formulario controlada */}
+              <Formulario texto={f.texto} fontSize={fontSizes.titulo} />
             </View>
           ))
         )}

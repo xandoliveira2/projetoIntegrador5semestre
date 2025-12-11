@@ -205,6 +205,7 @@ export default function Criar() {
                       style={styles.container}
                       icon={require("@/../assets/icons/engrenagem_branco.png")}
                       iconSize={30}
+                    
                       onPress={() => {}}
                     />
                   }

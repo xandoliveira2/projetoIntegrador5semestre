@@ -9,8 +9,11 @@ import Formulario from "@/components/Formulario";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
 
+import FontSizeButtons from "@/components/FontSizeButtons";
+import { useFontSize } from "@/components/FontSizeProvider";
+
 import { db } from "@/firebase/firebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 type FormularioType = {
   id: string;
@@ -22,8 +25,52 @@ export default function ParaResponder() {
   const router = useRouter();
   const { user } = useAuth();
 
+  const { fontSize, increase, decrease, setBounds } = useFontSize();
+
   const [formularios, setFormularios] = useState<FormularioType[]>([]);
 
+  // -------------------------------
+  //  🔤 LIMITES DE TAMANHO DE FONTE
+  // -------------------------------
+  const limits = {
+    titulo: { min: 18, max: 50 }, // Formulario (texto)
+    data: { min: 12, max: 30 },   // Date (data)
+    //botao: { min: 16, max: 30 },  // Botão "Responder"
+  };
+
+  // define limites globais no provider
+  useEffect(() => {
+    const providerMin = Math.max(
+      limits.titulo.min,
+      limits.data.min,
+     // limits.botao.min
+    );
+    const providerMax = Math.min(
+      limits.titulo.max,
+      limits.data.max,
+    //  limits.botao.max
+    );
+
+    if (providerMin > providerMax) {
+      setBounds(14, 32);
+    } else {
+      setBounds(providerMin, providerMax);
+    }
+  }, []);
+
+  const clamp = (size: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, size));
+
+  //  🔤 tamanhos finais aplicados nos componentes
+  const fontSizes = {
+    data: clamp(fontSize, limits.data.min, limits.data.max),
+    titulo: clamp(fontSize, limits.titulo.min, limits.titulo.max),
+   // botao: clamp(fontSize, limits.botao.min, limits.botao.max),
+  };
+
+  // -------------------------------
+  //  🔍 CARREGAR FORMULÁRIOS
+  // -------------------------------
   const handleResponder = (idFormulario: string) => {
     router.push({
       pathname: "/telas/responderFormulario",
@@ -36,23 +83,22 @@ export default function ParaResponder() {
       if (!user?.username) return;
 
       try {
-        setFormularios([]); // ✅ LIMPA ANTES DE CARREGAR
+        setFormularios([]);
 
         const usuario = user.username;
 
-        // ✅ 1. Buscar formulários já respondidos
+        // 🔹 Buscar IDs já respondidos
         const qRespondidos = query(
           collection(db, "usuario_formularios_respondidos"),
           where("usuario", "==", usuario)
         );
 
         const respSnapshot = await getDocs(qRespondidos);
-
         const idsRespondidos = new Set(
           respSnapshot.docs.map((doc) => doc.data().id_formulario)
         );
 
-        // ✅ 2. Buscar formulários disponíveis
+        // 🔹 Buscar formulários ativos
         const qFormularios = query(
           collection(db, "formularios"),
           where("status", "==", true)
@@ -63,7 +109,7 @@ export default function ParaResponder() {
         const lista: FormularioType[] = [];
 
         formsSnapshot.forEach((doc) => {
-          if (idsRespondidos.has(doc.id)) return; // ✅ ignora já respondidos
+          if (idsRespondidos.has(doc.id)) return;
 
           const data = doc.data();
 
@@ -88,20 +134,31 @@ export default function ParaResponder() {
     carregarFormularios();
   }, [user]);
 
-
+  // -------------------------------
+  //  📌 RENDER
+  // -------------------------------
   return (
-    <View>
-      <ScrollView style={{ padding: 20 }}
-      contentContainerStyle={{ paddingBottom: 100 }} // 👈 folga no final do scroll
->
+    <View style={{ flex: 1 }}>
+      {/* ------------------ BOTÕES DE FONT SIZE ------------------ */}
+      <View style={{ marginLeft: "73%", marginBottom: "2%" }}>
+        <FontSizeButtons onIncrease={increase} onDecrease={decrease} />
+      </View>
+
+      <ScrollView
+        style={{ padding: 20 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         {formularios.length === 0 ? (
           <EmptyListMessage mensagem="Nenhum formulário para responder" />
         ) : (
           formularios.map((f) => (
             <View key={f.id} style={{ marginTop: 15 }}>
-              <Date data={f.data} />
+              {/* 🔤 Fonte da data controlada pelo provider */}
+              <Date data={f.data} fontSize={fontSizes.data} />
 
-              <Formulario texto={f.texto}>
+              {/* 🔤 Fonte do titulo do formulario controlada */}
+              <Formulario texto={f.texto} fontSize={fontSizes.titulo}>
+                {/* 🔤 Botão com fonte controlada */}
                 <FormButton
                   text="Responder"
                   onPress={() => handleResponder(f.id)}
