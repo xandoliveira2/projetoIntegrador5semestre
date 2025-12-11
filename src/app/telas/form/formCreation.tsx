@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   Text,
@@ -27,7 +28,7 @@ import { db } from "../../../firebase/firebaseConfig";
 
 export default function FormularioTela() {
   const router = useRouter();
-  const { nome, id } = useLocalSearchParams(); // ✅ PEGA O ID QUANDO FOR EDIÇÃO
+  const { nome, id } = useLocalSearchParams();
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
@@ -36,9 +37,8 @@ export default function FormularioTela() {
   const [perguntas, setPerguntas] = useState<any[]>([]);
   const [selecionada, setSelecionada] = useState<number | null>(null);
 
-  const isEdicao = !!id; // ✅ DEFINE SE É EDIÇÃO OU CRIAÇÃO
+  const isEdicao = !!id;
 
-  // ✅ LIMPA AO SAIR DA TELA
   useFocusEffect(
     useCallback(() => {
       return () => {
@@ -50,7 +50,6 @@ export default function FormularioTela() {
     }, [])
   );
 
-  // ✅ CARREGAR PERGUNTAS SE FOR EDIÇÃO
   useEffect(() => {
     if (!id) return;
 
@@ -82,7 +81,6 @@ export default function FormularioTela() {
     carregarPerguntas();
   }, [id]);
 
-  // ✅ FUNÇÕES DE CONTROLE
   const adicionarPergunta = (tipo: string) => {
     const novaPergunta = {
       id: Date.now(),
@@ -107,11 +105,11 @@ export default function FormularioTela() {
       prev.map((p) =>
         p.id === id
           ? {
-              ...p,
-              opcoes: p.opcoes.map((op: any, i: number) =>
-                i === index ? valor : op
-              ),
-            }
+            ...p,
+            opcoes: p.opcoes.map((op: any, i: number) =>
+              i === index ? valor : op
+            ),
+          }
           : p
       )
     );
@@ -130,9 +128,9 @@ export default function FormularioTela() {
       prev.map((p) =>
         p.id === id
           ? {
-              ...p,
-              opcoes: p.opcoes.filter((_: any, i: number) => i !== index),
-            }
+            ...p,
+            opcoes: p.opcoes.filter((_: any, i: number) => i !== index),
+          }
           : p
       )
     );
@@ -143,12 +141,10 @@ export default function FormularioTela() {
     if (selecionada === id) setSelecionada(null);
   };
 
-  // ✅ SALVAR (CRIAR OU EDITAR)
   const salvarFormulario = async () => {
     try {
       let formularioId = id as string;
 
-      // ✅ SE FOR NOVO
       if (!isEdicao) {
         const docFormulario = await addDoc(collection(db, "formularios"), {
           nome: nome ?? "Sem nome",
@@ -159,7 +155,6 @@ export default function FormularioTela() {
         formularioId = docFormulario.id;
       }
 
-      // ✅ APAGA PERGUNTAS ANTIGAS
       const antigas = query(
         collection(db, "formularios_pergunta"),
         where("formulario_pai", "==", formularioId)
@@ -174,7 +169,6 @@ export default function FormularioTela() {
 
       await batchDelete.commit();
 
-      // ✅ RECRIA AS ATUALIZADAS
       for (let i = 0; i < perguntas.length; i++) {
         const pergunta = perguntas[i];
 
@@ -196,7 +190,7 @@ export default function FormularioTela() {
     }
   };
 
-  // ✅ RENDER DE CADA PERGUNTA (MANTIVE SEU PADRÃO)
+  // Render de cada pergunta
   const renderPergunta = (pergunta: any, index: number) => {
     const estaSelecionada = selecionada === pergunta.id;
 
@@ -206,37 +200,49 @@ export default function FormularioTela() {
         onPress={() => setSelecionada(pergunta.id)}
         style={{
           width: "90%",
-          backgroundColor: estaSelecionada ? "#fff" : "transparent",
+          backgroundColor: estaSelecionada ? "#ffffff" : "#f8f8f8",
           borderRadius: 10,
-          padding: estaSelecionada ? 12 : 0,
+          padding: estaSelecionada ? 12 : 10,
           marginBottom: 20,
           elevation: estaSelecionada ? 2 : 0,
         }}
       >
+        {/* Título */}
         {estaSelecionada ? (
-          <>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <TouchableOpacity onPress={() => removerPergunta(pergunta.id)}>
-                <Ionicons name="trash-outline" size={22} color="red" />
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              placeholder="Pergunta"
-              value={pergunta.titulo}
-              onChangeText={(t) => atualizarPergunta(pergunta.id, t)}
-              style={{
-                borderWidth: 1,
-                borderColor: "#ddd",
-                borderRadius: 6,
-                padding: 8,
-                marginVertical: 5,
-              }}
-            />
+          <TextInput
+            placeholder="Pergunta"
+            value={pergunta.titulo}
+            onChangeText={(t) => atualizarPergunta(pergunta.id, t)}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderRadius: 6,
+              padding: 8,
+              marginVertical: 5,
+              backgroundColor: "#fff",
+            }}
+          />
+        ) : (
+          <Text style={{ fontWeight: "bold", marginVertical: 5 }}>
+            {index + 1} - {pergunta.titulo || "Pergunta"}
+          </Text>
+        )}
 
-            {pergunta.tipo === "alternativa" &&
-              pergunta.opcoes.map((op: string, i: number) => (
-                <View key={i} style={{ flexDirection: "row" }}>
-                  <Text style={{textAlignVertical:'center',}}>{i+1} - </Text>
+        {/* Opções */}
+        {pergunta.tipo === "alternativa" &&
+          pergunta.opcoes.map((op: string, i: number) => (
+            <View
+              key={i}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: 2,
+              }}
+            >
+              <Text style={{ marginRight: 5 }}>{i + 1} - </Text>
+
+              {estaSelecionada ? (
+                <>
                   <TextInput
                     value={op}
                     onChangeText={(t) => atualizarOpcao(pergunta.id, i, t)}
@@ -246,125 +252,134 @@ export default function FormularioTela() {
                       borderColor: "#ddd",
                       borderRadius: 6,
                       padding: 8,
-                      marginVertical: 4,
-                      minWidth:'80%'
+                      backgroundColor: "#fff",
                     }}
                   />
-
-                  <TouchableOpacity onPress={() => removerOpcao(pergunta.id, i)}
-                    style={{flex:1, justifyContent:'center', marginLeft:5}}
-                    >
-                    <Ionicons name="close-circle" size={22} color="red" />
+                  <TouchableOpacity
+                    onPress={() => removerOpcao(pergunta.id, i)}
+                    style={{ marginLeft: 5 }}
+                  >
+                    <Image
+                      source={require('./../../../../assets/icons/remove.png')}
+                      style={{ width: 22, height: 22 }}
+                    />
                   </TouchableOpacity>
-                </View>
-              ))}
+                </>
+              ) : (
+                <Text style={{ flex: 1 }}>{op || "—"}</Text>
+              )}
+            </View>
+          ))}
 
-            {pergunta.tipo === "alternativa" && (
-              <TouchableOpacity onPress={() => adicionarOpcao(pergunta.id)}>
-                <Text style={{ color: "#ff8c00" }}>+ Adicionar opção</Text>
-              </TouchableOpacity>
-            )}
-          </>
-        ) : (
-          <Text style={{ fontWeight: "bold" }}>
-            {index + 1} - {pergunta.titulo || "Pergunta"}
-          </Text>
+        {/* Adicionar opção */}
+        {estaSelecionada && pergunta.tipo === "alternativa" && (
+          <TouchableOpacity onPress={() => adicionarOpcao(pergunta.id)}>
+            <Text style={{ color: "#ff8c00", marginTop: 5 }}>+ Adicionar opção</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Botão remover pergunta */}
+        {estaSelecionada && (
+          <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 5 }}>
+            <TouchableOpacity onPress={() => removerPergunta(pergunta.id)}>
+              <Ionicons name="trash-outline" size={22} color="red" />
+            </TouchableOpacity>
+          </View>
         )}
       </Pressable>
     );
   };
-return (
-  <Pressable onPress={() => setSelecionada(null)} style={{ flex: 1 }}>
-    <View style={{ flex: 1, backgroundColor: "#f0f6fc" }}>
-      {/* CABEÇALHO */}
-      <View
-        style={{
-          paddingTop: 40,
-          paddingBottom: 15,
-          alignItems: "center",
-          borderBottomWidth: 1,
-          borderColor: "#ddd",
-        }}
-      >
-        <Text style={{ fontSize: 22, fontWeight: "bold" }}>
-          {nome ?? "Formulário"}
-        </Text>
-      </View>
 
-      {/* CONTEÚDO COM SCROLL NORMAL */}
-      <KeyboardAwareScrollView
-        enableOnAndroid
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          alignItems: "center",
-          paddingVertical: 20,
-        }}
-      >
-        {perguntas.map((p, i) => renderPergunta(p, i))}
-
-        {/* BOTÃO DE ADICIONAR PERGUNTA */}
-        <OptionsMenu
-          visible={menuAberto}
-          onOpen={() => setMenuAberto(true)}
-          onClose={() => setMenuAberto(false)}
-          icon={
-            <FormButton
-              text="＋ Nova Pergunta"
-              onPress={() => setMenuAberto(true)}
-              style={{ marginTop: 10 }}
-            />
-          }
-          options={[
-            {
-              title: "📝 Dissertativa",
-              onPress: () => adicionarPergunta("dissertativa"),
-            },
-            {
-              title: "🔘 Alternativa",
-              onPress: () => adicionarPergunta("alternativa"),
-            },
-          ]}
-        />
-
-        {/* ✅ BOTÃO SALVAR / ATUALIZAR — AGORA FLUI NATURALMENTE */}
-        <FormButton
-          text={isEdicao ? "Atualizar" : "Salvar"}
-          onPress={() => setShowSalvarModal(true)}
-          style={{
-            marginTop: 25,
-            marginBottom: 40, // ✅ folga final do scroll
-            width: "90%",
-          }}
-        />
-      </KeyboardAwareScrollView>
-
-      {/* MODAL DE CONFIRMAÇÃO */}
-      <Modal transparent visible={showSalvarModal} animationType="fade">
+  return (
+    <Pressable onPress={() => setSelecionada(null)} style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: "#f0f6fc" }}>
+        {/* CABEÇALHO */}
         <View
           style={{
-            flex: 1,
-            justifyContent: "center",
+            paddingTop: 40,
+            paddingBottom: 15,
             alignItems: "center",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            borderBottomWidth: 1,
+            borderColor: "#ddd",
           }}
         >
+          <Text style={{ fontSize: 22, fontWeight: "bold" }}>
+            {nome ?? "Formulário"}
+          </Text>
+        </View>
+
+        {/* CONTEÚDO COM SCROLL */}
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            alignItems: "center",
+            paddingVertical: 20,
+          }}
+        >
+          {perguntas.map((p, i) => renderPergunta(p, i))}
+
+          <OptionsMenu
+            visible={menuAberto}
+            onOpen={() => setMenuAberto(true)}
+            onClose={() => setMenuAberto(false)}
+            icon={
+              <FormButton
+                text="＋ Nova Pergunta"
+                onPress={() => setMenuAberto(true)}
+                style={{ marginTop: 10 }}
+              />
+            }
+            options={[
+              {
+                title: "📝 Dissertativa",
+                onPress: () => adicionarPergunta("dissertativa"),
+              },
+              {
+                title: "🔘 Alternativa",
+                onPress: () => adicionarPergunta("alternativa"),
+              },
+            ]}
+          />
+
+          <FormButton
+            text={isEdicao ? "Atualizar" : "Salvar"}
+            onPress={() => setShowSalvarModal(true)}
+            style={{
+              marginTop: 25,
+              marginBottom: 40,
+              width: "90%",
+            }}
+          />
+        </KeyboardAwareScrollView>
+
+        {/* MODAL */}
+        <Modal transparent visible={showSalvarModal} animationType="fade">
           <View
             style={{
-              backgroundColor: "#fff",
-              padding: 20,
-              borderRadius: 12,
-              width: "80%",
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.5)",
             }}
           >
-            <Text style={{ fontSize: 18, marginBottom: 15 }}>
-              Deseja salvar?
-            </Text>
+            <View
+              style={{
+                backgroundColor: "#fff",
+                padding: 20,
+                borderRadius: 12,
+                width: "80%",
+              }}
+            >
+              <Text style={{ fontSize: 18, marginBottom: 15 }}>
+                Deseja salvar?
+              </Text>
 
-            <FormButton text="Confirmar" onPress={salvarFormulario} />
+              <FormButton text="Confirmar" onPress={salvarFormulario} />
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
-  </Pressable>
-);
+        </Modal>
+      </View>
+    </Pressable>
+  );
 }
