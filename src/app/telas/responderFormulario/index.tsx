@@ -261,8 +261,8 @@ export default function ResponderFormulario() {
               {/* SETA ESQUERDA */}
               {!isFirst && (
                 <TouchableOpacity style={styles.arrowLeft} onPress={anterior}>
-                  <MaterialIcons name="arrow-back-ios" size={34} 
-                  style={{marginLeft:10}}
+                  <MaterialIcons name="arrow-back-ios" size={34}
+                    style={{ marginLeft: 10 }}
                   />
                 </TouchableOpacity>
               )}
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 95,
+    height: 100,
     backgroundColor: "#f3f7f3ee",
     borderTopWidth: 1,
     borderColor: "#bfd5bf",
@@ -336,28 +336,33 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 15,
     bottom: 15,
-    width: 70,
-    height: 70,
-    backgroundColor: "#fff",
+    width: 80,
+    height: 80,
+    backgroundColor: "#3bff4fff",
     borderRadius: 100,
     borderWidth: 2,
     borderColor: "#aaa",
     alignItems: "center",
     justifyContent: "center",
+
+    elevation: 3
+
   },
 
   arrowRight: {
     position: "absolute",
     right: 15,
     bottom: 15,
-    width: 70,
-    height: 70,
-    backgroundColor: "#fff",
+    width: 80,
+    height: 80,
+    backgroundColor: "#3bff4fff",
     borderRadius: 100,
     borderWidth: 2,
     borderColor: "#aaa",
     alignItems: "center",
     justifyContent: "center",
+    elevation: 3
+
   },
 
 
@@ -392,6 +397,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 22,
     minWidth: 140,
+    marginLeft:5
+
   },
 
   botaoFinalizar: {
@@ -399,13 +406,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 22,
-    minWidth: 160,
+    minWidth: 160,    
+    marginRight:5
+
   },
 
   textoBotao: {
     color: "#fff",
     fontSize: 18,
     textAlign: "center",
+    fontWeight:'bold'
   },
 
   textoBotaoFinalizar: {
